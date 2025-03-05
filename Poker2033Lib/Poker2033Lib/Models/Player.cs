@@ -1,4 +1,4 @@
-﻿namespace Poker2033.Hand.Base.Model;
+﻿namespace Poker2033.Hand;
 
 /// <summary>
 /// 有兩個實例應用:

@@ -5,6 +5,9 @@ MinimumVisualStudioVersion = 17.0.0.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ovb3HandPwa.Server", "Server\Ovb3HandPwa.Server.csproj", "{2C96C980-3473-4D08-82B0-E5206F97EF58}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Ovb3HandPwa.Client", "Client\Ovb3HandPwa.Client.csproj", "{2C5F2292-BBDD-46B0-A92F-7DBA60AB5111}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DAD5C5D4-D756-4567-B728-4E4DFF295106} = {DAD5C5D4-D756-4567-B728-4E4DFF295106}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvnCanvasHelper", "AvnCanvasHelper\AvnCanvasHelper.csproj", "{0CA41DBA-DB20-4AE3-A51F-28F398294A26}"
 EndProject

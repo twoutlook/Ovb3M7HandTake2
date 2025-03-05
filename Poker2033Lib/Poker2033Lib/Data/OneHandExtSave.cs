@@ -1,4 +1,4 @@
-﻿using Poker2033.Hand.Base.Model;
+﻿using Poker2033.Hand;
 using System.Text.RegularExpressions;
 
 namespace Poker2033Lib.Data;

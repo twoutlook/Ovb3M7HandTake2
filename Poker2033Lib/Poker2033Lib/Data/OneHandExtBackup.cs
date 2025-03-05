@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Poker2033.Hand.Base.Model;
-//namespace Poker2033.Hand.Base.Model;
+namespace Poker2033.Hand;
+//namespace Poker2033.Hand;
 public class OneHandExtBackup
 {
     public OneHandExtBackup() { }

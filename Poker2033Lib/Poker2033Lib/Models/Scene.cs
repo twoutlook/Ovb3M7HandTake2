@@ -1,4 +1,4 @@
-﻿namespace Poker2033.Hand.Base.Model;
+﻿namespace Poker2033.Hand;
 
 public class Scene
 {
