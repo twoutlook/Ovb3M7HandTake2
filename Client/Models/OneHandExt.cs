@@ -1,4 +1,5 @@
-﻿using Radzen.Blazor.Rendering;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Radzen.Blazor.Rendering;
 using System.Collections.Generic;
 using System.Reflection.Metadata.Ecma335;
 using System.Security.AccessControl;
@@ -431,14 +432,16 @@ public class OneHandExt
     {
         foreach (var scene in Actions)
         {
-            if (scene.text != null && scene.text.Contains("all-in")){
-                foreach (var scene2 in Actions.Where(a=>a.Seq>=scene.Seq))
+            if (scene.text != null && scene.text.Contains("all-in"))
+            {
+                scene.IsAllIn = true;
+                foreach (var scene2 in Actions.Where(a => a.Seq >= scene.Seq))
                 {
                     var allinPlayer = scene2.Players.FirstOrDefault(a => a.PlayerId == scene.PlayerId);
                     if (allinPlayer != null) allinPlayer.IsAllIn = true;
 
-                }               
-            }          
+                }
+            }
         }
     }
 
@@ -466,6 +469,17 @@ public class OneHandExt
             {
                 string checking = scene.PlayerId;
                 Console.WriteLine($"\nRAISE case for {checking} ");
+
+                if (scene.IsAllIn)
+                {
+                    Console.WriteLine($"DOING... RAISE + ALL-IN  {checking} ");
+
+                }
+
+
+
+
+
 
                 // Get previous actions of the same player in the same stage
                 var previousActions = GetPreviousActionsInSameStage(checking, scene);
@@ -1891,8 +1905,9 @@ public class OneHandExt
         Console.WriteLine();
         foreach (var scene in Actions.OrderBy(a => a.Seq))
         {
+            var allinScene = scene.IsAllIn ? "@" : "";
             //Console.WriteLine("場景:" + scene.Seq + "  " + scene.text + "  探照灯:" + scene.SpotTo + " " + "ALL IN" + scene.IsAllIn + " ");
-            Console.Write($"{scene.Stage} ({scene.Seq}) pot: {scene.Pot:F2} ");
+            Console.Write($"{scene.Stage} ({scene.Seq}) {allinScene} pot: {scene.Pot:F2} ");
             if (scene.AdjPot != scene.Pot)
             {
                 Console.Write($" adj to {scene.AdjPot:F2} ");
