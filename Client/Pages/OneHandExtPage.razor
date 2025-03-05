@@ -45,7 +45,7 @@
             Click="GoToLastStepAsync"
             Disabled="@oneHand.NO_MORE_NEXT"
             Style="width: 40px;" />
-            <span style="color:white;font-size:50%; font-family:monospace">scene @oneHand.SceneId / @oneHand.MAX_STEP <br />  *** ver 1.20.0</span>
+            <span style="color:white;font-size:50%; font-family:monospace">scene @oneHand.SceneId / @oneHand.MAX_STEP <br />  *** ver 1.21.0</span>
         }
         else
         {
@@ -470,7 +470,7 @@
     /// Draws table-related statistics (Rake, Jackpot, Bingo, Fortune, Tax) at the top-right corner.
     /// </summary>
     /// <returns></returns>
-    private async Task DrawTableStats()
+    private async Task XXXDrawTableStats()
     {
         // Define the starting position (top-right corner)
         double startX = canvas.CenterX + 90; // Adjust for padding
@@ -491,7 +491,100 @@
         await Ctx.FillTextAsync($"Fortune: {oneHand.TableFortune:0.00}", startX, startY + 80);
         await Ctx.FillTextAsync($"Tax: {oneHand.TableTax:0.00}", startX, startY + 100);
     }
+    private async Task DrawTableStats()
+    {
+        double startX = canvas.CenterX + 90;
+        double startY = 14;
+        double space = 20;  // 行距
 
+        await Ctx.SetFontAsync("bold 12px Consolas, monospace");
+        await Ctx.SetFillStyleAsync("#FFFFFF");
+
+        double currentY = startY;
+
+        bool hasRake = oneHand.TableRake > 0;
+        bool hasJackpot = oneHand.TableJackpot > 0;
+        bool hasBingo = oneHand.TableBingo > 0;
+        bool hasFortune = oneHand.TableFortune > 0;
+        bool hasTax = oneHand.TableTax > 0;
+
+        double total = oneHand.TableRake + oneHand.TableJackpot + oneHand.TableBingo + oneHand.TableFortune + oneHand.TableTax;
+        bool isPotValid = Math.Abs(oneHand.Pot - total) < 0.01; // 容許小數誤差
+
+        if (hasRake)
+        {
+            await Ctx.FillTextAsync($"Rake: {oneHand.TableRake:0.00}", startX, currentY);
+            currentY += space;
+        }
+        if (hasJackpot)
+        {
+            await Ctx.FillTextAsync($"Jackpot: {oneHand.TableJackpot:0.00}", startX, currentY);
+            currentY += space;
+        }
+        if (hasBingo)
+        {
+            await Ctx.FillTextAsync($"Bingo: {oneHand.TableBingo:0.00}", startX, currentY);
+            currentY += space;
+        }
+        if (hasFortune)
+        {
+            await Ctx.FillTextAsync($"Fortune: {oneHand.TableFortune:0.00}", startX, currentY);
+            currentY += space;
+        }
+        if (hasTax)
+        {
+            await Ctx.FillTextAsync($"Tax: {oneHand.TableTax:0.00}", startX, currentY);
+            currentY += space;
+        }
+
+        // 驗算結果
+        string validationText = isPotValid ? "✅ Pot 餘額合乎抽水等的總和!" : $"❌ Pot 餘額和抽水等沒對上。 ";
+
+        await Ctx.FillTextAsync(validationText, 10, 14);
+    }
+
+    private async Task xxxxDrawTableStats()
+    {
+        double startX = canvas.CenterX + 90;
+        double startY = 14;
+        double space = 20;  // 行距
+
+        await Ctx.SetFontAsync("bold 12px Consolas, monospace");
+        await Ctx.SetFillStyleAsync("#FFFFFF");
+
+        double currentY = startY;
+
+        // if (oneHand.TablePot > 0)
+        // {
+        //     await Ctx.FillTextAsync($"Pot: {oneHand.TablePot:0.00}", startX, currentY);
+        //     currentY += space;
+        // }
+        if (oneHand.TableRake > 0)
+        {
+            await Ctx.FillTextAsync($"Rake: {oneHand.TableRake:0.00}", startX, currentY);
+            currentY += space;
+        }
+        if (oneHand.TableJackpot > 0)
+        {
+            await Ctx.FillTextAsync($"Jackpot: {oneHand.TableJackpot:0.00}", startX, currentY);
+            currentY += space;
+        }
+        if (oneHand.TableBingo > 0)
+        {
+            await Ctx.FillTextAsync($"Bingo: {oneHand.TableBingo:0.00}", startX, currentY);
+            currentY += space;
+        }
+        if (oneHand.TableFortune > 0)
+        {
+            await Ctx.FillTextAsync($"Fortune: {oneHand.TableFortune:0.00}", startX, currentY);
+            currentY += space;
+        }
+        if (oneHand.TableTax > 0)
+        {
+            await Ctx.FillTextAsync($"Tax: {oneHand.TableTax:0.00}", startX, currentY);
+            currentY += space;
+        }
+    }
 
 
     /// <summary>
