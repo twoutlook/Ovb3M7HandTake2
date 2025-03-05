@@ -26,12 +26,6 @@
     <Content Update="Layout\CleanLayout.razor">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
-    <Content Update="Pages\IndexMobile69MaxHero.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
-    <Content Update="Pages\IndexMobile6MaxHero.razor">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-    </Content>
     <Content Update="Pages\SampleHand2.razor">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
