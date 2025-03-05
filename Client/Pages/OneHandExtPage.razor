@@ -1,0 +1,696 @@
+﻿@page "/"
+@page "/one-hand-ext"
+@layout CleanLayout
+@using Ovb3HandPwa.Client.Data
+@using Ovb3HandPwa.Client.Models
+@using Poker2033.Hand.Base.Model
+@using System.Text.RegularExpressions
+@using AvnCanvasHelper
+@using Blazor.Extensions
+@using Blazor.Extensions.Canvas
+@using Blazor.Extensions.Canvas.Canvas2D
+@using Blazor.Extensions.Canvas.Model
+@using System.Drawing
+@using Radzen  <!-- for NotificationService, etc. -->
+@using System.Text
+
+<PageTitle>手牌回播（已處理 RAISE ANTE RAKE）</PageTitle>
+<div style="background-color: #333333; min-height: 100vh; padding: 10px;">
+    <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-end;">
+        <RadzenDropDown @bind-Value="selectedGameID"
+        Data="gameIdList"
+        Placeholder="Select Game ID"
+        Change="@(args => OnGameIdChanged((int)args))"
+        Style="background-color:lightgrey;font-size:85%; width: 80px; text-align: center; " />
+
+        <br />
+        @if (isDataReady)
+        {
+            <RadzenButton Icon="skip_previous"
+            Click="GoToFirstStep"
+            Disabled="@oneHand.NO_MORE_PREV"
+            Style="width: 40px;" />
+
+            <RadzenButton Icon="navigate_before"
+            Click="GoToPreviousStep"
+            Disabled="@oneHand.NO_MORE_PREV"
+            Style="width: 40px;" />
+
+            <RadzenButton Icon="navigate_next"
+            Click="GoToNextStepAsync"
+            Disabled="@oneHand.NO_MORE_NEXT"
+            Style="width: 40px;" />
+
+            <RadzenButton Icon="skip_next"
+            Click="GoToLastStepAsync"
+            Disabled="@oneHand.NO_MORE_NEXT"
+            Style="width: 40px;" />
+            <span style="color:white;font-size:50%; font-family:monospace">scene @oneHand.SceneId / @oneHand.MAX_STEP <br />  ver 1.15.0</span>
+        }
+        else
+        {
+            <span style="color:white;font-size:85%">資料準備中...</span>
+        }
+    </div>
+
+
+    <!-- Canvas -->
+    <CanvasHelper @ref="CanvasHelper"
+    CanvasResized="CanvasResized"
+    RenderFrame="RenderFrame">
+        <BECanvas @ref="CanvasReference" />
+    </CanvasHelper>
+</div>
+<!-- Preload all 52 card images -->
+@foreach (var card in deckList) // 已經加了 Xx 為卡牌背面
+{
+    <img src="img/deck/@(card).png" style="display:none;" @ref="cardImages[card]" />
+}
+<img src="img/deck/dealer.png" style="display:none;" @ref="DealerButton" />
+<img src="img/deck/all-in.png" style="display:none;" @ref="AllInButton" />
+
+@code {
+    #region 變量區
+    private bool isDataReady = false;
+    private int selectedGameID = 1; // Default Game ID
+    private List<int> gameIdList = new() { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 }; // Available Game IDs
+
+    /* -------------------------------------------------------
+       1) Data: from DevData or actual hand
+       ------------------------------------------------------- */
+    // private string pokerHand = DevData.pokerHand;  // The textual hand record
+    private List<string> deckList = DevData.deckList;
+    // public OneHand oneHand = new();
+    public OneHandExt oneHand = new();
+    private bool isBtnPlaying;
+
+    /* -------------------------------------------------------
+       2) Canvas & State
+       ------------------------------------------------------- */
+    // 新的 canvans 座標, 後續要分離出來給主視覺人員微調
+    private CanvasMobileHeroSettings canvas;// = new(); // Use the settings class
+
+
+    private Size Size = new Size();
+    private Dictionary<string, ElementReference> cardImages = new();
+
+    private BECanvasComponent CanvasReference;
+    private Canvas2DContext Ctx;
+    private CancellationTokenSource? _cts;
+
+    private CanvasHelper CanvasHelper;
+    private ElementReference DealerButton;
+    private ElementReference AllInButton;
+
+
+    private double FPS;
+    private bool isPlaying = false;
+
+
+
+    #endregion
+
+    #region 播放器 UI 功能
+    private void BtnTogglePlayPause()
+    {
+        isBtnPlaying = !isBtnPlaying;
+    }
+    private async void GoToFirstStep()
+    {
+        // OneHandSet.ToStart();
+        // Cancel any existing auto-play loop
+        _cts?.Cancel();
+        _cts = new CancellationTokenSource();
+        var token = _cts.Token;
+
+        isPlaying = true;
+        try
+        {
+            while (!oneHand.NO_MORE_PREV)
+            {
+                await Task.Delay(10, token);  // Pass token to Task.Delay
+                await GoToPreviousStep();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+
+        }
+        finally
+        {
+            isPlaying = false;
+        }
+    }
+
+    private async Task GoToPreviousStep()
+    {
+        oneHand.Prev();
+    }
+
+    private async Task TogglePlayPause()
+    {
+        isBtnPlaying = !isBtnPlaying;
+        // Cancel any existing auto-play loop
+        _cts?.Cancel();
+        _cts = new CancellationTokenSource();
+        var token = _cts.Token;
+
+        isPlaying = !isPlaying;
+
+        if (isPlaying)
+        {
+            try
+            {
+                while (isPlaying && !oneHand.NO_MORE_NEXT)
+                {
+                    await Task.Delay(1000);
+                    await GoToNextStepAsync();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // The auto-play loop was cancelled.
+
+            }
+            finally
+            {
+                isPlaying = false;
+            }
+        }
+    }
+
+    private async Task GoToNextStepAsync()
+    {
+        oneHand.Next();
+    }
+
+    private async Task GoToLastStepAsync()
+    {
+        // Cancel any existing auto-play loop
+        _cts?.Cancel();
+        _cts = new CancellationTokenSource();
+        var token = _cts.Token;
+
+        isPlaying = true;
+        try
+        {
+            while (!oneHand.NO_MORE_NEXT)
+            {
+                await Task.Delay(10, token);  // Pass token to Task.Delay
+                await GoToNextStepAsync();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+
+        }
+        finally
+        {
+            isPlaying = false;
+        }
+    }
+
+
+
+    #endregion 播放器 UI 功能
+
+    #region 程式啟動
+    /// <summary>
+    /// 頁面程式啟動點
+    /// </summary>
+    /// <param name="firstRender"></param>
+    /// <returns></returns>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // canvas = new CanvasMobileHeroSettings(6);
+
+            // // 要換 data
+            // await LoadNewGame(1);
+
+            // isDataReady = false;
+
+            // 一次OK
+            Ctx = await CanvasReference.CreateCanvas2DAsync();
+            await CanvasHelper.Initialize();
+
+            // canvas = new CanvasMobileHeroSettings(6);
+
+            // 要換 data
+            await OnGameIdChanged(1);
+
+            isDataReady = true;
+        }
+    }
+
+    /// <summary>
+    /// 下拉的 GameId 變化時
+    /// </summary>
+    /// <param name="gameID"></param>
+    /// <returns></returns>
+    private async Task OnGameIdChanged(int gameID)
+    {
+        selectedGameID = gameID;
+        await LoadNewGame(selectedGameID);
+    }
+
+    private async Task LoadNewGame(int gameID)
+    {
+        isDataReady = false;
+        StateHasChanged();
+
+        // oneHand = new OneHand();
+        oneHand = new ();
+
+        oneHand.RawText = DevData.GetPokerHandByGameID(selectedGameID);
+        await oneHand.InitAsync();
+
+
+        // **Detect number of players (6-max or 9-max) and adjust layout**
+        // canvas.SeatCount = oneHand.Players.Count;
+        //  canvas.SeatCount = oneHand.MAX_SEAT;
+        canvas = new CanvasMobileHeroSettings(oneHand.MAX_SEAT);
+        //
+        // 
+        canvas.CenterX = canvas.CenterX - 19; //
+
+
+
+        //
+
+        isDataReady = true;
+        StateHasChanged(); // Refresh UI
+    }
+    #endregion
+
+
+    #region HTML Canvas
+
+    /// <summary>
+    /// HTML5 Canvas 六人桌，數據全部在 OneHandSet，包括全部的場景（Scene）。
+    /// </summary>
+    /// <param name="fps"></param>
+    /// <returns></returns>
+    public async Task RenderFrame(double fps) //
+    {
+        // Ctrl+M,Ctrl+L
+        // Ctrl+M,Ctrl+O
+        // Ctrl+M,Ctrl+U
+
+
+        #region 目前沒有使用 FPS, 直接使用 Blazor StateHasChanged() 機制
+        // FPS, Frames Per Second（每秒幀數）
+        // Debug 時會使用強制調用 RenderFrame(double fps)
+        // FPS = fps; // 因此本行註釋掉
+        #endregion
+        // 批次渲染（Batch Rendering）開始
+        await Ctx.BeginBatchAsync();
+
+        #region 批次渲染的內部分段, 有些有必要的前後。後續可以給前端開發獨立調試
+        // 底色範圍, 桌子, 品牌
+        await DrawTableAndBrand();
+
+
+
+        // 六人桌 --- 含探照灯及手照
+
+        // await Draw6MaxPlayers();
+        await DrawPlayers();
+
+        // 底池
+        await DrawPot();
+
+        // 公共牌
+        await DrawCommunityCards();
+
+        // 抽水資訊 Rake...
+        if(oneHand.SceneId==oneHand.MAX_STEP){
+            await DrawTableStats();
+        }
+  
+
+        // Dealer D 的圖像
+        // await DealerButtonImg();
+        #endregion
+
+        // 批次渲染（Batch Rendering）結束
+        await Ctx.EndBatchAsync();
+    }
+    private async Task DrawPlayers()
+    {
+        // int seatCount = oneHand.Players.Count;
+        int seatCount = oneHand.MAX_SEAT;
+
+        // Dynamically get the number of players (6 or 9)
+        if (seatCount != 6 && seatCount != 9) return; // Validate supported table sizes
+
+        int heroSeatNum = oneHand.Players.FirstOrDefault(p => p.IsHero())?.SeatNum ?? 0;
+        double heroFixedAngle = Math.PI / 2; // HERO at the bottom (6 o'clock)
+
+        int dealerSeatIndex = oneHand.dealerSeatIndex;
+        if (dealerSeatIndex < 0 || dealerSeatIndex >= seatCount) return;
+
+        // Calculate dealer button position
+        int dealerSeatOffset = (dealerSeatIndex - heroSeatNum + seatCount) % seatCount;
+        double dealerAngle = heroFixedAngle + (dealerSeatOffset * (2 * Math.PI / seatCount));
+
+        double shrinkFactor = 50;
+        double dealerX = canvas.CenterX + (canvas.SeatRadiusX - shrinkFactor) * Math.Cos(dealerAngle);
+        double dealerY = canvas.CenterY + (canvas.SeatRadiusY - shrinkFactor) * Math.Sin(dealerAngle);
+
+        // Loop through all players and position them
+        for (int i = 0; i < seatCount; i++)
+        {
+            int seatOffset = (i - heroSeatNum + seatCount) % seatCount;
+            double angle = heroFixedAngle + (seatOffset * (2 * Math.PI / seatCount));
+
+            double seatX = canvas.CenterX + canvas.SeatRadiusX * Math.Cos(angle);
+            double seatY = canvas.CenterY + canvas.SeatRadiusY * Math.Sin(angle);
+
+            var currentPlayerByScene = oneHand.GetCurrentScenePlayerBySeat(i);
+            if (currentPlayerByScene != null)
+            {
+                await DrawPlayer(currentPlayerByScene, seatX, seatY, angle);
+            }
+        }
+
+        // Draw dealer button
+        await Ctx.DrawImageAsync(DealerButton, dealerX , dealerY , 24, 24);
+    }
+
+    private async Task DrawPlayer(Player player, double seatX, double seatY, double angle)
+    {
+        // Draw seat circle
+        await Ctx.BeginPathAsync();
+        await Ctx.ArcAsync(seatX, seatY, canvas.SeatCircleRadius, 0, 2 * Math.PI, false);
+        await Ctx.SetFillStyleAsync("#333333");
+        await Ctx.FillAsync();
+        await Ctx.SetStrokeStyleAsync("#FFFFFF");
+        await Ctx.SetLineWidthAsync(2);
+        await Ctx.StrokeAsync();
+
+        // Draw player position
+        string posName = player.Position;
+        if (player.IsHero()) posName += "*";
+        // await Ctx.SetFontAsync("12px Segoe UI bold");
+        await Ctx.SetFontAsync("bold 12px Consolas, monospace");
+        await Ctx.SetFillStyleAsync("#FFFFFF");
+        await Ctx.FillTextAsync(posName, seatX - 10, seatY + 5);
+
+        // Draw chips
+        double chip = player.Chips;
+        string chipText = $"{chip:0.00}";
+        // TextMetrics chipTextMetrics = await Ctx.MeasureTextAsync(chipText);
+        // double chipTextWidth = chipTextMetrics.Width;
+        // double badgeX = seatX - (chipTextWidth / 2);
+        // double badgeY = seatY + 18;
+        // await DrawBadge(badgeX, badgeY, chipText);
+
+        // Align to left edge of left poker card
+        double chipX = seatX-canvas.CardWidth;
+        double chipY = seatY + 31;
+        // await DrawBadge(badgeX, badgeY, chipText);
+        // await Ctx.SetFontAsync("12px Segoe UI");
+        await Ctx.SetFontAsync("bold 14px Consolas, monospace");
+        await Ctx.SetFillStyleAsync("white");
+        await Ctx.FillTextAsync(chipText, chipX, chipY);
+
+        // Draw action text
+        string actionText = player.ActionDetail ?? "";
+        // TextMetrics actionTextMetrics = await Ctx.MeasureTextAsync(actionText);
+        // double actionTextWidth = actionTextMetrics.Width;
+        double actionX = seatX - canvas.CardWidth ;
+        double actionY = seatY + 44;
+        // await Ctx.SetFontAsync("12px Segoe UI");
+        await Ctx.SetFontAsync("bold 14px Consolas, monospace");
+        await Ctx.SetFillStyleAsync("yellow");
+        await Ctx.FillTextAsync(actionText.Trim(), actionX, actionY);
+
+        // Draw All-in button
+        if (player.IsAllIn)
+        {
+            double allInDistance = 35;
+            double allInX = seatX - (allInDistance * Math.Cos(angle));
+            double allInY = seatY - (allInDistance * Math.Sin(angle));
+
+            await Ctx.DrawImageAsync(AllInButton, allInX - 12, allInY - 12, 24, 24);
+        }
+
+        // Draw spotlight effect
+        bool spot = oneHand.GetCurrentScene().SpotTo.Contains(player.SeatNum.ToString());
+        if (spot)
+        {
+            await Ctx.BeginPathAsync();
+            await Ctx.SetStrokeStyleAsync("rgba(255, 255, 100, 0.15)");
+            await Ctx.SetLineWidthAsync(40);
+            await Ctx.MoveToAsync(canvas.CenterX, canvas.CenterY);
+            await Ctx.LineToAsync(seatX, seatY);
+            await Ctx.StrokeAsync();
+        }
+
+        // Draw hole cards
+        for (int j = 0; j < 2; j++)
+        {
+            double xOffset = -18 + seatX - (canvas.CardWidth / 2) + (j * canvas.CardWidth);
+            double yOffset = seatY - 20;
+            if (cardImages.TryGetValue(player.HoleRef[j], out var cardImage))
+            {
+                await Ctx.DrawImageAsync(cardImage, xOffset, yOffset, canvas.CardWidth, canvas.CardHeight);
+            }
+        }
+    }
+
+    #region 實際的動畫效果
+
+    /// <summary>
+    /// Draws table-related statistics (Rake, Jackpot, Bingo, Fortune, Tax) at the top-right corner.
+    /// </summary>
+    /// <returns></returns>
+    private async Task DrawTableStats()
+    {
+        // Define the starting position (top-right corner)
+        double startX = canvas.CenterX + 90; // Adjust for padding
+        double startY = 20;  // Top margin
+
+        double space = 12;
+
+        // Set font style
+        await Ctx.SetFontAsync("bold 10px Consolas, monospace");
+        await Ctx.SetFillStyleAsync("#FFFFFF"); // White text for readability
+
+        // Draw each statistic
+    //    await Ctx.FillTextAsync($"Pot: {oneHand.TablePot:0.00}", startX, startY);
+        
+        await Ctx.FillTextAsync($"Rake: {oneHand.TableRake:0.00}", startX, startY+20);
+        await Ctx.FillTextAsync($"Jackpot: {oneHand.TableJackpot:0.00}", startX, startY + 40);
+        await Ctx.FillTextAsync($"Bingo: {oneHand.TableBingo:0.00}", startX, startY + 60);
+        await Ctx.FillTextAsync($"Fortune: {oneHand.TableFortune:0.00}", startX, startY + 80);
+        await Ctx.FillTextAsync($"Tax: {oneHand.TableTax:0.00}", startX, startY + 100);
+    }
+
+
+
+    /// <summary>
+    /// 底池
+    /// </summary>
+    /// <returns></returns>
+    private async Task DrawPot()
+    {
+
+        // if (oneHand.Pot > 0)
+        // {
+            string potText = $"POT: {oneHand.Pot:0.00}";
+            await Ctx.SetFontAsync("bold 14px Consolas, monospace");
+            //   await Ctx.SetFontAsync("18px Segoe UI");
+            await Ctx.SetFillStyleAsync("#FFFFFF");
+            // var potMetrics = await Ctx.MeasureTextAsync(potText);
+            double potX = canvas.CenterX - 55;// (potMetrics.Width / 2);
+            double potY = canvas.CenterY - 10-50;
+            await Ctx.FillTextAsync(potText, potX, potY);
+        // }
+    }
+
+
+    private async Task DrawTableAndBrand()
+    {
+        // 🔹 1. Set a dark background
+        await Ctx.SetFillStyleAsync("#333333"); // Deep black
+        await Ctx.FillRectAsync(0, 0, 393, 560); // Full canvas size
+
+        // 🔹 2. Green oval poker table
+        await Ctx.SaveAsync();
+        await Ctx.TranslateAsync(canvas.CenterX , canvas.CenterY); //canvas 如何整個向左位移
+        await Ctx.ScaleAsync(1.2, 2.0); // Adjusted for portrait mode
+        await Ctx.BeginPathAsync();
+        await Ctx.SetFillStyleAsync("#0b330b"); // Darker green for a professional look
+        // await Ctx.ArcAsync(0, 0, 110, 0, 2 * Math.PI, false);
+        await Ctx.ArcAsync(0, 0, 130, 0, 2 * Math.PI, false);
+        await Ctx.FillAsync();
+        await Ctx.RestoreAsync();
+
+        // 🔹 3. Table Edge (optional, adds depth)
+        await Ctx.BeginPathAsync();
+        await Ctx.SetStrokeStyleAsync("#003300"); // Darker green edge
+        await Ctx.SetLineWidthAsync(5);
+        await Ctx.ArcAsync(canvas.CenterX, canvas.CenterY, 115, 0, 2 * Math.PI, false);
+        await Ctx.StrokeAsync();
+
+        // 🔹 4. Brand Text (subtle glow effect)
+        string title = "overbankroll.com";
+        await Ctx.SetFontAsync("bold 24px Segoe UI");
+        await Ctx.SetFillStyleAsync("#154734");
+        var textMetrics = await Ctx.MeasureTextAsync(title);
+        double titleX = -30 + canvas.CenterX - (textMetrics.Width / 2);
+        double titleY = canvas.CenterY + 80;
+        await Ctx.FillTextAsync(title, titleX, titleY);
+    }
+
+
+    private async Task DrawCommunityCards() // DOING
+    {
+        string previousCommunityCards = ""; // Store previous community cards
+        string secondPreviousCommunityCards = ""; // Store community cards from two steps ago
+
+        double startXCommunity = 60 + canvas.CenterX - (canvas.CardWidth * 5 + canvas.CardSpacing * 4) / 2;
+        double startYCommunity = canvas.CenterY - (canvas.CardHeight / 2) + 30;
+
+        (int AllInCnt, string cards) = oneHand.GetCurrentCommunityCardsExt();
+        if (string.IsNullOrEmpty(cards)) return; // Combined check for null or empty string
+
+        // var maxAllInCnt = oneHand.Actions.Max(a => a.AllInCnt);
+
+
+        if (AllInCnt == 3)
+        {
+            var c1 = oneHand.Actions.Where(a => a.AllInCnt == 1).OrderByDescending(a => a.Seq).FirstOrDefault();
+            var c2 = oneHand.Actions.Where(a => a.AllInCnt == 2).OrderByDescending(a => a.Seq).FirstOrDefault();
+            if (c1 != null) previousCommunityCards = c1.CommunityCards;
+            if (c2 != null) secondPreviousCommunityCards = c2.CommunityCards;
+
+            // Draw the community cards from AllInCnt == 1 and 2
+            if (!string.IsNullOrEmpty(secondPreviousCommunityCards))
+            {
+                await DrawCardsCoreExt(cards, secondPreviousCommunityCards, startXCommunity, startYCommunity - 2 * (canvas.CardHeight / 1.5), true);
+            }
+            if (!string.IsNullOrEmpty(previousCommunityCards))
+            {
+                await DrawCardsCoreExt(cards, previousCommunityCards, startXCommunity, startYCommunity - (canvas.CardHeight / 1.5), true);
+            }
+        }
+        if (AllInCnt == 2)//
+        {
+            var c1 = oneHand.Actions.Where(a => a.AllInCnt == 1).OrderByDescending(a => a.Seq).FirstOrDefault();
+            if (c1 != null) previousCommunityCards = c1.CommunityCards;
+            // Draw the previous community cards when AllInCnt == 2
+            if (!string.IsNullOrEmpty(previousCommunityCards))
+            {
+                await DrawCardsCoreExt(cards, previousCommunityCards, startXCommunity, startYCommunity - (canvas.CardHeight / 1.5), true);
+            }
+        }
+
+        // Draw the current community cards
+        await DrawCardsCore(cards, startXCommunity, startYCommunity, false);
+
+        // Store previous hands for future draws
+        // secondPreviousCommunityCards = previousCommunityCards;
+        // previousCommunityCards = cards;
+    }
+
+
+
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="cards1"></param>
+    /// <param name="cards2"></param>
+    /// <returns></returns>
+    private int GetSkip(string cards1, string cards2)
+    {
+        var cnt = 0;
+        /*
+        檢查全部的公共牌 5d 4h 3h 及跑馬次 0
+        檢查全部的公共牌 5d 4h 3h 4c 及跑馬次 1
+        檢查全部的公共牌 5d 4h 3h 4c 8h 及跑馬次 1 <<< cards1
+        檢查全部的公共牌 5d 4h 3h Kd 及跑馬次 2    <<< cards2
+        檢查全部的公共牌 5d 4h 3h Kd 6d 及跑馬次 2
+        檢查全部的公共牌 5d 4h 3h 8c 及跑馬次 3
+        檢查全部的公共牌 5d 4h 3h 8c 9s 及跑馬次 3
+        */
+        var communityCards1 = cards1.Split(' ');
+        var communityCards2 = cards2.Split(' ');
+
+        int len1 = communityCards1.Length;
+        int len2 = communityCards2.Length;
+
+        int rec = len1;
+        if (len2 < rec) rec = len2;
+
+        // Ensure cards2 is an extension of cards1
+        // if (len2 < len1) return cnt;
+
+        for (int i = 0; i < rec; i++)
+        {
+            if (communityCards1[i] == communityCards2[i])
+            {
+                cnt++; // If mismatch in the existing cards, return immediately
+            }
+        }
+
+        // Count newly added community cards
+        //cnt = len2 - len1;
+        return cnt;
+    }
+
+    // Helper method to draw cards
+    private async Task DrawCardsCore(string cards, double startX, double startY, bool isPrevious)
+    {
+
+        var cardsExt = cards.Replace("[", "").Replace("]", "").Split(" ", StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < cardsExt.Length; i++)
+        {
+            if (cardImages.TryGetValue(cardsExt[i], out var imageRef))
+            {
+                await Ctx.DrawImageAsync(imageRef,
+                    startX + i * canvas.CardSpacing, startY,
+                    canvas.CardWidth, canvas.CardHeight);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 如果跑馬是在轉牌河牌, 那麼翻牌三張就不必上移
+    /// </summary>
+    /// <param name="cards"></param>
+    /// <param name="startX"></param>
+    /// <param name="startY"></param>
+    /// <param name="isPrevious"></param>
+    /// <returns></returns>
+    private async Task DrawCardsCoreExt(string cards0, string cards, double startX, double startY, bool isPrevious)
+    {
+        int skip = GetSkip(cards0, cards);
+        var cardsExt = cards.Replace("[", "")
+                        .Replace("]", "") //這是之前版本有用 []
+                        .Split(" ", StringSplitOptions.RemoveEmptyEntries);
+        var cnt = 0;
+        for (int i = 0; i < cardsExt.Length; i++)
+        {
+            cnt++;
+            if (cnt <= skip) continue;
+            if (cardImages.TryGetValue(cardsExt[i], out var imageRef))
+            {
+                await Ctx.DrawImageAsync(imageRef,
+                    startX + i * canvas.CardSpacing, startY,
+                    canvas.CardWidth, canvas.CardHeight);
+            }
+        }
+    }
+
+    public void CanvasResized(System.Drawing.Size size) => Size = size;
+
+    #endregion
+
+    #endregion HTML Canvas
+
+}
