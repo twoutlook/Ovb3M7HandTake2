@@ -319,14 +319,15 @@ public class OneHandExt
 
         Patch___ALLIN();
         DevOutput3();
+
         // AdjPotandPlayerChips DOING  
         //    DevOutput3();
-        AdjScenePotAndPlayerChips___RAISE();
-        UpdateScenePotAndPlayerChips();
+        //AdjScenePotAndPlayerChips___RAISE();
+        //UpdateScenePotAndPlayerChips();
 
 
-        Patch___RAISE_ALLIN();
-        UpdateScenePotAndPlayerChips();
+        //Patch___RAISE_ALLIN();
+        //UpdateScenePotAndPlayerChips();
 
 
 
@@ -565,21 +566,14 @@ public class OneHandExt
         foreach (var scene in Actions)
         {
             double diff = 0;
-            if (scene.ActName != null && scene.ActName.ToUpper() == "RAISE")
-            {
-                string checking = scene.PlayerId;
+            //if (scene.ActName != null && scene.ActName.ToUpper() == "RAISE")
+                if (scene.ActName != null && scene.ActName.ToUpper() == "RAISE")
+
+                {
+                    string checking = scene.PlayerId;
                 Console.WriteLine($"\nRAISE case for {checking} ");
 
-                //if (scene.IsAllIn)
-                //{
-                //    Console.WriteLine($"DOING... RAISE + ALL-IN  {checking} ");
-                //}
-
-
-
-
-
-
+           
                 // Get previous actions of the same player in the same stage
                 var previousActions = GetPreviousActionsInSameStage(checking, scene);
 
@@ -591,10 +585,11 @@ public class OneHandExt
                     if (targetPlayer != null)
                     {
                         diff = (double)previousActions.ActAmt;
+                        diff = 2 * diff;
                         targetPlayer.AdjChips -= diff;
                         scene.AdjPot -= diff;
                     }
-                }
+                
 
                 // Step 3: Propagate adjustments to all future scenes
                 foreach (var scene2 in Actions.Where(a => a.Seq > scene.Seq))
@@ -613,6 +608,7 @@ public class OneHandExt
                             futurePlayer.AdjChips -= diff;
                         }
                     }
+                }
                 }
 
 
