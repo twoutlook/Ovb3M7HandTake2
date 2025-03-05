@@ -1,5 +1,5 @@
-﻿namespace Ovb3HandPwa.Client.Data;
-
+﻿//namespace Ovb3HandPwa.Client.Data;
+namespace Poker2033.Hand.Data;
 public static class DevData
 {
     public static string GetPokerHandByGameID(int gameID)
@@ -652,8 +652,62 @@ Seat 6: 17fa2c64 (big blind) folded before Flop
 
 ";
 
-
+    /// <summary>
+    /// 3019
+    /// </summary>
     public static string pokerHand1 = @"
+Poker Hand #RC2144220710: Hold'em No Limit ($1/$2) - 2024/01/10 11:29:20
+Table 'RushAndCash635970' 6-max Seat #1 is the button
+Seat 1: c8fb1124 ($233.09 in chips)
+Seat 2: 795296c7 ($229.2 in chips)
+Seat 3: 97f042a4 ($215.94 in chips)
+Seat 4: 75ec1730 ($236 in chips)
+Seat 5: Hero ($247.29 in chips)
+Seat 6: 347609c5 ($200 in chips)
+795296c7: posts small blind $1
+97f042a4: posts big blind $2
+*** HOLE CARDS ***
+Dealt to c8fb1124 
+Dealt to 795296c7 
+Dealt to 97f042a4 
+Dealt to 75ec1730 
+Dealt to Hero [As Kc]
+Dealt to 347609c5 
+75ec1730: folds
+Hero: raises $2 to $4
+347609c5: folds
+c8fb1124: raises $10 to $14
+795296c7: raises $29.5 to $43.5
+97f042a4: folds
+Hero: raises $203.79 to $247.29 and is all-in
+c8fb1124: folds
+795296c7: calls $185.7 and is all-in
+Uncalled bet ($18.09) returned to Hero
+Hero: shows [As Kc]
+795296c7: shows [Js Jc]
+*** FLOP *** [2s 3s Qd]
+*** TURN *** [2s 3s Qd] [9s]
+*** RIVER *** [2s 3s Qd 9s] [4s]
+*** SHOWDOWN ***
+Hero collected $465.4 from pot
+*** SUMMARY ***
+Total pot $474.4 | Rake $6 | Jackpot $3 | Bingo $0 | Fortune $0 | Tax $0
+Board [2s 3s Qd 9s 4s]
+Seat 1: c8fb1124 (button) folded before Flop
+Seat 2: 795296c7 (small blind) showed [Js Jc] and lost with Jack High Flush
+Seat 3: 97f042a4 (big blind) folded before Flop
+Seat 4: 75ec1730 folded before Flop (didn't bet)
+Seat 5: Hero showed [As Kc] and won ($465.4) with Ace High Flush
+Seat 6: 347609c5 folded before Flop (didn't bet)
+
+
+";
+
+
+    /// <summary>
+    /// 抽水不完整?
+    /// </summary>
+    public static string BUGpokerHand1 = @"
 Poker Hand #RC2129015124: Hold'em No Limit ($1/$2) - 2024/01/06 15:59:21
 Table 'RushAndCash130384' 6-max Seat #1 is the button
 Seat 1: a8b25666 ($200 in chips)

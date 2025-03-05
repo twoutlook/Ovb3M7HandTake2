@@ -320,9 +320,19 @@ public class OneHandExt
         UpdateScenePotAndPlayerChips();
 
 
+
+
+
         AdjScenePotAndPlayerChips___RETURN();
         UpdateScenePotAndPlayerChips();
 
+
+        Patch___RAISE_ALLIN();
+        UpdateScenePotAndPlayerChips();
+
+
+        Patch___CALL_ALLIN();
+        UpdateScenePotAndPlayerChips();
 
         DetermineRakeAndOthers();
 
@@ -334,6 +344,191 @@ public class OneHandExt
 
 
     }
+
+    /// <summary>
+    /// 在 sample 7, BTN
+    /// all-in 後 chips= -50 by Raise
+    /// 同一手 BB 在 all-in 後 chips = -20
+    /// POT 目前是OK, 就是 player's chips 要校正
+    /// </summary>
+    public void Patch___RAISE_ALLIN()
+    {
+        // init Adj of Pot and Player's Chips
+
+        foreach (var scene in Scenes)
+        {
+            //if (scene.Stage != null && scene.Stage.ToUpper() == "BLIND") scene.Stage = "PREFLOP";
+
+            // sceno.AdjPot and Players' AdjChips just the same, copy it 
+            scene.AdjPot = scene.Pot;
+            foreach (var player in scene.Players)
+            {
+                player.AdjChips = player.Chips;
+            }
+        }
+
+        // to actual Adj  DOING
+        foreach (var scene in Scenes.OrderBy(a => a.Seq))
+        {
+            double diff = 0;
+            if (scene.ActName != null && scene.ActName.ToUpper() == "RAISE")
+            {
+                string checking = scene.PlayerId;
+                Console.WriteLine($"\nPatch___RAISE_ALLIN 找到 RAISE, PlayerId={checking} ");
+
+                if (scene.IsAllIn)
+                {
+                    Console.WriteLine($"  確認是 ALL-IN   {checking} ");
+                    //  var previousActions = GetPreviousActionsInSameStage(checking, scene);
+                    var hotPlayer = scene.Players.FirstOrDefault(a => a.PlayerId == scene.PlayerId);
+                    if (hotPlayer != null)
+                    {
+                        var toFixAmt = hotPlayer.AdjChips;
+                        if (toFixAmt < 0)
+                        {
+                            toFixAmt = (-1) * toFixAmt;
+                            foreach (var scene2 in Scenes.Where(a => a.Seq >= scene.Seq))
+                            {
+                                var scenePlayer = scene2.Players.FirstOrDefault(a => a.PlayerId == scene.PlayerId);
+                                if(scenePlayer!=null) scenePlayer.AdjChips += toFixAmt;
+                            }
+                        }
+                    }
+                }
+              
+
+
+
+
+                // Get previous actions of the same player in the same stage
+                //var previousActions = GetPreviousActionsInSameStage(checking, scene);
+
+                //if (previousActions != null)
+                //{
+                //    Console.WriteLine($"Previous actions of {checking} in stage {scene.Stage}:");
+                //    Console.WriteLine($"  Seq: {previousActions.Seq}, Action: {previousActions.ActName}, Amount: {previousActions.ActAmt}");
+                //    var targetPlayer = scene.Players.Where(a => a.PlayerId == checking).FirstOrDefault();
+                //    if (targetPlayer != null)
+                //    {
+                //        diff = (double)previousActions.ActAmt;
+                //        targetPlayer.AdjChips -= diff;
+                //        scene.AdjPot -= diff;
+                //    }
+                //}
+
+                //// Step 3: Propagate adjustments to all future scenes
+                //foreach (var scene2 in Actions.Where(a => a.Seq > scene.Seq))
+                //{
+                //    // var futureScene = Actions[j];
+
+                //    // Carry forward the pot adjustment
+                //    scene2.AdjPot -= diff;
+
+                //    // Carry forward each player's chip adjustment
+                //    foreach (var futurePlayer in scene2.Players.Where(a => a.PlayerId == checking))
+                //    {
+                //        var previousPlayerState = scene.Players.FirstOrDefault(p => p.PlayerId == futurePlayer.PlayerId);
+                //        if (previousPlayerState != null)
+                //        {
+                //            futurePlayer.AdjChips -= diff;
+                //        }
+                //    }
+                //}
+
+
+            }
+        }
+    }
+
+    public void Patch___CALL_ALLIN()
+    {
+        // init Adj of Pot and Player's Chips
+
+        foreach (var scene in Scenes)
+        {
+            //if (scene.Stage != null && scene.Stage.ToUpper() == "BLIND") scene.Stage = "PREFLOP";
+
+            // sceno.AdjPot and Players' AdjChips just the same, copy it 
+            scene.AdjPot = scene.Pot;
+            foreach (var player in scene.Players)
+            {
+                player.AdjChips = player.Chips;
+            }
+        }
+
+        // to actual Adj  DOING
+        foreach (var scene in Scenes.OrderBy(a => a.Seq))
+        {
+            double diff = 0;
+            if (scene.ActName != null && scene.ActName.ToUpper() == "CALL")
+            {
+                string checking = scene.PlayerId;
+                Console.WriteLine($"\n CALL 仿 Patch___RAISE_ALLIN 找到 RAISE, PlayerId={checking} ");
+
+                if (scene.IsAllIn)
+                {
+                    Console.WriteLine($"  確認是 ALL-IN   {checking} ");
+                    //  var previousActions = GetPreviousActionsInSameStage(checking, scene);
+                    var hotPlayer = scene.Players.FirstOrDefault(a => a.PlayerId == scene.PlayerId);
+                    if (hotPlayer != null)
+                    {
+                        var toFixAmt = hotPlayer.AdjChips;
+                        if (toFixAmt < 0)
+                        {
+                            toFixAmt = (-1) * toFixAmt;
+                            foreach (var scene2 in Scenes.Where(a => a.Seq >= scene.Seq))
+                            {
+                                var scenePlayer = scene2.Players.FirstOrDefault(a => a.PlayerId == scene.PlayerId);
+                                if (scenePlayer != null) scenePlayer.AdjChips += toFixAmt;
+                            }
+                        }
+                    }
+                }
+
+
+
+
+
+                // Get previous actions of the same player in the same stage
+                //var previousActions = GetPreviousActionsInSameStage(checking, scene);
+
+                //if (previousActions != null)
+                //{
+                //    Console.WriteLine($"Previous actions of {checking} in stage {scene.Stage}:");
+                //    Console.WriteLine($"  Seq: {previousActions.Seq}, Action: {previousActions.ActName}, Amount: {previousActions.ActAmt}");
+                //    var targetPlayer = scene.Players.Where(a => a.PlayerId == checking).FirstOrDefault();
+                //    if (targetPlayer != null)
+                //    {
+                //        diff = (double)previousActions.ActAmt;
+                //        targetPlayer.AdjChips -= diff;
+                //        scene.AdjPot -= diff;
+                //    }
+                //}
+
+                //// Step 3: Propagate adjustments to all future scenes
+                //foreach (var scene2 in Actions.Where(a => a.Seq > scene.Seq))
+                //{
+                //    // var futureScene = Actions[j];
+
+                //    // Carry forward the pot adjustment
+                //    scene2.AdjPot -= diff;
+
+                //    // Carry forward each player's chip adjustment
+                //    foreach (var futurePlayer in scene2.Players.Where(a => a.PlayerId == checking))
+                //    {
+                //        var previousPlayerState = scene.Players.FirstOrDefault(p => p.PlayerId == futurePlayer.PlayerId);
+                //        if (previousPlayerState != null)
+                //        {
+                //            futurePlayer.AdjChips -= diff;
+                //        }
+                //    }
+                //}
+
+
+            }
+        }
+    }
+
     /// <summary>
     /// 在優化前先打補丁
     /// </summary>
@@ -397,7 +592,7 @@ public class OneHandExt
                 Console.WriteLine($"\nRETURN case for {checking} ");
 
                 // Get the uncalled bet amount
-                diff =(2)*(double) scene.ActAmt;
+                diff = (2) * (double)scene.ActAmt;
 
                 // Adjust the player's chips in the current scene
                 var targetPlayer = scene.Players.FirstOrDefault(a => a.PlayerId == checking);
@@ -487,7 +682,7 @@ public class OneHandExt
                     scene2.AdjPot -= diff;
 
                     // Carry forward each player's chip adjustment
-                    foreach (var futurePlayer in scene2.Players.Where(a=>a.PlayerId== checking))
+                    foreach (var futurePlayer in scene2.Players.Where(a => a.PlayerId == checking))
                     {
                         var previousPlayerState = scene.Players.FirstOrDefault(p => p.PlayerId == futurePlayer.PlayerId);
                         if (previousPlayerState != null)
@@ -711,7 +906,7 @@ public class OneHandExt
     {
         // remove all-in
         //string[] actKeywords = new string[] { "all-in", "check", "fold", "bet", "call", "raise", "collect", "return", "show" };
-        string[] actKeywords = new string[] {  "check", "fold", "bet", "call", "raise", "collect", "return", "show" };
+        string[] actKeywords = new string[] { "check", "fold", "bet", "call", "raise", "collect", "return", "show" };
 
         foreach (var raw in RawHandRecords.Where(a => a.is_action_record == true))
         {
@@ -751,7 +946,7 @@ public class OneHandExt
             act.PlayerId = match0.Groups[3].Value;  // Extract player ID
             act.ActName = "RETURN";
             act.ActAmt = double.Parse(match0.Groups[1].Value);  // Extract amount
-        //    act.ActAmt = (-1) * act.ActAmt;
+                                                                //    act.ActAmt = (-1) * act.ActAmt;
             return act;
         }
 
