@@ -709,8 +709,9 @@ public class OneHandExt
     }
     public void InitActions()
     {
-
-        string[] actKeywords = new string[] { "all-in", "check", "fold", "bet", "call", "raise", "collect", "return", "show" };
+        // remove all-in
+        //string[] actKeywords = new string[] { "all-in", "check", "fold", "bet", "call", "raise", "collect", "return", "show" };
+        string[] actKeywords = new string[] {  "check", "fold", "bet", "call", "raise", "collect", "return", "show" };
 
         foreach (var raw in RawHandRecords.Where(a => a.is_action_record == true))
         {
@@ -772,31 +773,33 @@ public class OneHandExt
             string afterColon = line.Substring(colonPos + 1).Trim();
             act.PlayerId = playerId;
 
-            if (afterColon.Contains("all-in"))
-            {
-                double amt = ExtractNumeric(afterColon, "bets $");
-                if (amt == 0) amt = ExtractNumeric(afterColon, "raises $");
-                if (amt == 0) amt = ExtractNumeric(afterColon, "calls $");// id 310 補上
 
-                act.ActName = "ALL-IN";
-                act.ActAmt = amt;
-                act.IsAllIn = true; // Mark action as All-In
-                if (act.IsAllIn)
-                {
-                    // 這時原不知道 seq
-                    Console.Write($"ALL-IN {act.IsAllIn},SEQ={act.Seq}, PlayerId={act.PlayerId}");
-                }// Find the player and update their all-in status
+            // remove all-in
+            //if (afterColon.Contains("all-in"))
+            //{
+            //    double amt = ExtractNumeric(afterColon, "bets $");
+            //    if (amt == 0) amt = ExtractNumeric(afterColon, "raises $");
+            //    if (amt == 0) amt = ExtractNumeric(afterColon, "calls $");// id 310 補上
 
-                // wrong timing
-                //var player = act.Players.Where(p => p.PlayerId == act.PlayerId).FirstOrDefault();
-                //if (player != null)
-                //{
-                //    player.IsAllIn = true;
-                //    Console.WriteLine($"ALL-IN Player Updated: {player.PlayerId} is now all-in");
-                //}
+            //    act.ActName = "ALL-IN";
+            //    act.ActAmt = amt;
+            //    act.IsAllIn = true; // Mark action as All-In
+            //    if (act.IsAllIn)
+            //    {
+            //        // 這時原不知道 seq
+            //        Console.Write($"ALL-IN {act.IsAllIn},SEQ={act.Seq}, PlayerId={act.PlayerId}");
+            //    }// Find the player and update their all-in status
 
-            }
-            else
+            //    // wrong timing
+            //    //var player = act.Players.Where(p => p.PlayerId == act.PlayerId).FirstOrDefault();
+            //    //if (player != null)
+            //    //{
+            //    //    player.IsAllIn = true;
+            //    //    Console.WriteLine($"ALL-IN Player Updated: {player.PlayerId} is now all-in");
+            //    //}
+
+            //}
+            //else
             if (afterColon.Contains("folds"))
             {
                 act.ActName = "FOLD";
