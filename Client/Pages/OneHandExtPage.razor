@@ -3,7 +3,7 @@
 @layout CleanLayout
 @using Ovb3HandPwa.Client.Data
 @using Ovb3HandPwa.Client.Models 
-@using Poker2033.Hand.Base.Model
+@using Poker2033.Hand
 @using System.Text.RegularExpressions
 @using AvnCanvasHelper
 @using Blazor.Extensions
@@ -14,7 +14,7 @@
 @using Radzen  <!-- for NotificationService, etc. -->
 @using System.Text
 
-<PageTitle>手牌回播（已處理 RAISE ANTE RAKE）</PageTitle>
+<PageTitle>手牌回播（調試 all-in 中）</PageTitle>
 <div style="background-color: #333333; min-height: 100vh; padding: 10px;">
     <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-end;">
         <RadzenDropDown @bind-Value="selectedGameID"
@@ -45,7 +45,7 @@
             Click="GoToLastStepAsync"
             Disabled="@oneHand.NO_MORE_NEXT"
             Style="width: 40px;" />
-            <span style="color:white;font-size:50%; font-family:monospace">scene @oneHand.SceneId / @oneHand.MAX_STEP <br />  ** ver 1.17.0</span>
+            <span style="color:white;font-size:50%; font-family:monospace">scene @oneHand.SceneId / @oneHand.MAX_STEP <br />  *** ver 1.18.0</span>
         }
         else
         {
@@ -81,7 +81,7 @@
     // private string pokerHand = DevData.pokerHand;  // The textual hand record
     private List<string> deckList = DevData.deckList;
     // public OneHand oneHand = new();
-    public OneHandExt oneHand = new();
+    public Poker2033.Hand.OneHandExt oneHand = new();
     private bool isBtnPlaying;
 
     /* -------------------------------------------------------
@@ -558,13 +558,13 @@
         (int AllInCnt, string cards) = oneHand.GetCurrentCommunityCardsExt();
         if (string.IsNullOrEmpty(cards)) return; // Combined check for null or empty string
 
-        // var maxAllInCnt = oneHand.Actions.Max(a => a.AllInCnt);
+        // var maxAllInCnt = oneHand.Scenes.Max(a => a.AllInCnt);
 
 
         if (AllInCnt == 3)
         {
-            var c1 = oneHand.Actions.Where(a => a.AllInCnt == 1).OrderByDescending(a => a.Seq).FirstOrDefault();
-            var c2 = oneHand.Actions.Where(a => a.AllInCnt == 2).OrderByDescending(a => a.Seq).FirstOrDefault();
+            var c1 = oneHand.Scenes.Where(a => a.AllInCnt == 1).OrderByDescending(a => a.Seq).FirstOrDefault();
+            var c2 = oneHand.Scenes.Where(a => a.AllInCnt == 2).OrderByDescending(a => a.Seq).FirstOrDefault();
             if (c1 != null) previousCommunityCards = c1.CommunityCards;
             if (c2 != null) secondPreviousCommunityCards = c2.CommunityCards;
 
@@ -580,7 +580,7 @@
         }
         if (AllInCnt == 2)//
         {
-            var c1 = oneHand.Actions.Where(a => a.AllInCnt == 1).OrderByDescending(a => a.Seq).FirstOrDefault();
+            var c1 = oneHand.Scenes.Where(a => a.AllInCnt == 1).OrderByDescending(a => a.Seq).FirstOrDefault();
             if (c1 != null) previousCommunityCards = c1.CommunityCards;
             // Draw the previous community cards when AllInCnt == 2
             if (!string.IsNullOrEmpty(previousCommunityCards))

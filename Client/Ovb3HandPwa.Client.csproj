@@ -18,6 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AvnCanvasHelper\AvnCanvasHelper.csproj" />
+    <ProjectReference Include="..\Poker2033Lib\Poker2033Lib\Poker2033Lib.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ServiceWorker Include="../Server/wwwroot/service-worker.js" PublishedContent="../Server/wwwroot/service-worker.published.js" />
