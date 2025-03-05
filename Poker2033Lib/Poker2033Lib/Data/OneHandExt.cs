@@ -939,7 +939,9 @@ public class OneHandExt
 
         // Special case: Uncalled bet being returned
         string pattern0 = @"Uncalled bet \(\$(\d+(\.\d+)?)\) returned to (\S+)";
-        Match match0 = Regex.Match(line, pattern0);
+      
+        // 處理 千位分隔符（,）
+        Match match0 = Regex.Match(line.Replace(",",""), pattern0);
 
         if (match0.Success)
         {
@@ -949,9 +951,6 @@ public class OneHandExt
                                                                 //    act.ActAmt = (-1) * act.ActAmt;
             return act;
         }
-
-
-
 
         // ( WIN )    (39) SHOWDOWN True   af9dcee9 collected $118.52 from pot
         if (line.Contains("collected"))

@@ -14,7 +14,7 @@
 @using Radzen  <!-- for NotificationService, etc. -->
 @using System.Text
 
-<PageTitle>手牌回播（調試 all-in 中）</PageTitle>
+<PageTitle>手牌回播（16個範例通過）</PageTitle>
 <div style="background-color: #333333; min-height: 100vh; padding: 10px;">
     <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-end;">
         <RadzenDropDown @bind-Value="selectedGameID"
@@ -45,7 +45,7 @@
             Click="GoToLastStepAsync"
             Disabled="@oneHand.NO_MORE_NEXT"
             Style="width: 40px;" />
-            <span style="color:white;font-size:50%; font-family:monospace">scene @oneHand.SceneId / @oneHand.MAX_STEP <br />  *** ver 1.21.0</span>
+            <span style="color:white;font-size:50%; font-family:monospace">scene @oneHand.SceneId / @oneHand.MAX_STEP <br />  ver 1.22.0</span>
         }
         else
         {
