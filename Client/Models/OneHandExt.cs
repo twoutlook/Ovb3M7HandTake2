@@ -315,6 +315,8 @@ public class OneHandExt
 
         //最後才指定 seq=0 PlayerWithInitialChips;
         Actions.Where(a => a.Seq == 0).FirstOrDefault().Players = PlayerWithInitialChips;
+
+        Patch___ALLIN();
         DevOutput3();
         // AdjPotandPlayerChips DOING  
         //    DevOutput3();
@@ -381,7 +383,7 @@ public class OneHandExt
                 Console.WriteLine($"\nRETURN case for {checking} ");
 
                 // Get the uncalled bet amount
-                diff =(2)*(double) scene.ActAmt;
+                diff = (2) * (double)scene.ActAmt;
 
                 // Adjust the player's chips in the current scene
                 var targetPlayer = scene.Players.FirstOrDefault(a => a.PlayerId == checking);
@@ -421,6 +423,25 @@ public class OneHandExt
             }
         }
     }
+
+    /// <summary>
+    /// 在優化前先打補丁
+    /// </summary>
+    public void Patch___ALLIN()
+    {
+        foreach (var scene in Actions)
+        {
+            if (scene.text != null && scene.text.Contains("all-in")){
+                foreach (var scene2 in Actions.Where(a=>a.Seq>=scene.Seq))
+                {
+                    var allinPlayer = scene2.Players.FirstOrDefault(a => a.PlayerId == scene.PlayerId);
+                    if (allinPlayer != null) allinPlayer.IsAllIn = true;
+
+                }               
+            }          
+        }
+    }
+
     public void AdjScenePotAndPlayerChips___RAISE()
     {
         // init Adj of Pot and Player's Chips
@@ -471,7 +492,7 @@ public class OneHandExt
                     scene2.AdjPot -= diff;
 
                     // Carry forward each player's chip adjustment
-                    foreach (var futurePlayer in scene2.Players.Where(a=>a.PlayerId== checking))
+                    foreach (var futurePlayer in scene2.Players.Where(a => a.PlayerId == checking))
                     {
                         var previousPlayerState = scene.Players.FirstOrDefault(p => p.PlayerId == futurePlayer.PlayerId);
                         if (previousPlayerState != null)
@@ -693,8 +714,9 @@ public class OneHandExt
     }
     public void InitActions()
     {
-
-        string[] actKeywords = new string[] { "all-in", "check", "fold", "bet", "call", "raise", "collect", "return", "show" };
+        // NOTE by Mark, all-in 必需依賴 bet, call or raise
+        //string[] actKeywords = new string[] { "all-in", "check", "fold", "bet", "call", "raise", "collect", "return", "show" };
+        string[] actKeywords = new string[] { "check", "fold", "bet", "call", "raise", "collect", "return", "show" };
 
         foreach (var raw in RawHandRecords.Where(a => a.is_action_record == true))
         {
@@ -734,7 +756,7 @@ public class OneHandExt
             act.PlayerId = match0.Groups[3].Value;  // Extract player ID
             act.ActName = "RETURN";
             act.ActAmt = double.Parse(match0.Groups[1].Value);  // Extract amount
-        //    act.ActAmt = (-1) * act.ActAmt;
+                                                                //    act.ActAmt = (-1) * act.ActAmt;
             return act;
         }
 
@@ -752,35 +774,46 @@ public class OneHandExt
         if (colonPos > 0)
         {
 
+
             string playerId = line.Substring(0, colonPos).Trim();
             string afterColon = line.Substring(colonPos + 1).Trim();
             act.PlayerId = playerId;
 
-            if (afterColon.Contains("all-in"))
-            {
-                double amt = ExtractNumeric(afterColon, "bets $");
-                if (amt == 0) amt = ExtractNumeric(afterColon, "raises $");
-                if (amt == 0) amt = ExtractNumeric(afterColon, "calls $");// id 310 補上
+            //if (line.Contains("all-in"))
+            //{
+            //    var allinPlayer = act.Players.FirstOrDefault(a => a.PlayerId == playerId);
+            //    if (allinPlayer != null)
+            //    {
+            //        allinPlayer.IsAllIn = true; // MARKTODO, 進不來
+            //    }
+            //    act.IsAllIn = true;
+            //}
 
-                act.ActName = "ALL-IN";
-                act.ActAmt = amt;
-                act.IsAllIn = true; // Mark action as All-In
-                if (act.IsAllIn)
-                {
-                    // 這時原不知道 seq
-                    Console.Write($"ALL-IN {act.IsAllIn},SEQ={act.Seq}, PlayerId={act.PlayerId}");
-                }// Find the player and update their all-in status
+            //if (afterColon.Contains("all-in"))
+            //{
+            //    double amt = ExtractNumeric(afterColon, "bets $");
+            //    if (amt == 0) amt = ExtractNumeric(afterColon, "raises $");
+            //    if (amt == 0) amt = ExtractNumeric(afterColon, "calls $");// id 310 補上
 
-                // wrong timing
-                //var player = act.Players.Where(p => p.PlayerId == act.PlayerId).FirstOrDefault();
-                //if (player != null)
-                //{
-                //    player.IsAllIn = true;
-                //    Console.WriteLine($"ALL-IN Player Updated: {player.PlayerId} is now all-in");
-                //}
+            //    act.ActName = "ALL-IN";
+            //    act.ActAmt = amt;
+            //    act.IsAllIn = true; // Mark action as All-In
+            //    if (act.IsAllIn)
+            //    {
+            //        // 這時原不知道 seq
+            //        Console.Write($"ALL-IN {act.IsAllIn},SEQ={act.Seq}, PlayerId={act.PlayerId}");
+            //    }// Find the player and update their all-in status
 
-            }
-            else
+            //    // wrong timing
+            //    //var player = act.Players.Where(p => p.PlayerId == act.PlayerId).FirstOrDefault();
+            //    //if (player != null)
+            //    //{
+            //    //    player.IsAllIn = true;
+            //    //    Console.WriteLine($"ALL-IN Player Updated: {player.PlayerId} is now all-in");
+            //    //}
+
+            //}
+            //else
             if (afterColon.Contains("folds"))
             {
                 act.ActName = "FOLD";
@@ -841,6 +874,8 @@ public class OneHandExt
                 }
             }
         }
+
+        // NOTE by Mark, 03/05 11:00, ALL-IN 是一個狀況, 而不是一個動作
 
         return act;
     }
@@ -1868,7 +1903,8 @@ public class OneHandExt
                 //p.Chips = 100 * scene.Seq + 10 * p.SeatNum;
                 if (p.AdjChips == p.Chips)
                 {
-                    Console.Write($"[{p.SeatNum}]{p.Chips:F2}   ");
+                    var allin = p.IsAllIn ? "@" : "";
+                    Console.Write($"{allin}[{p.SeatNum}]{p.Chips:F2}   ");
                 }
                 else
                 {
@@ -1883,7 +1919,7 @@ public class OneHandExt
                 Console.Write($" {scene.PlayerId}  {scene.ActName} {scene.ActAmt}");
 
             }
-        //    Console.Write($" {scene.PlayerId}  {scene.ActName} {scene.ActAmt}");
+            //    Console.Write($" {scene.PlayerId}  {scene.ActName} {scene.ActAmt}");
             Console.WriteLine();
         }
     }
