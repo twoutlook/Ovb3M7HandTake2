@@ -1,5 +1,5 @@
 ﻿using Ovb3HandPwa.Client.Data;
-using Poker2033.Hand.Base.Model;
+using Poker2033.Hand;
 using Poker2033Lib.Data;
 using System;
 
