@@ -7,9 +7,8 @@ using static System.Formats.Asn1.AsnWriter;
 
 namespace Poker2033.Hand.Base.Model;
 
-public class OneHandExt
+public class OneHand
 {
-    public OneHandExt() { }
     public string GetScenePrompt()
     {
 
@@ -253,32 +252,24 @@ public class OneHandExt
 
     public int ActionSeq = new();
     public List<Action> Actions = new();
-    //Total pot $126.72 | Rake $6 | Jackpot $3 | Bingo $0 | Fortune $0 | Tax $0
-    public double TablePot; // 由 手牌記錄 解析獲得的
-    public double TableRake;
-    public double TableJackpot;
-    public double TableBingo;
-    public double TableFortune;
-    public double TableTax;
-
-
-
-
     public double Pot
     {
         get
         {
-            //if (SceneId == 0 || NO_MORE_NEXT)
-            //{
-            //    return 0;
-            //}
-            //else
-            //{
-            return GetCurrentScene().Pot;
-            //}
+            if (SceneId == 0 || NO_MORE_NEXT)
+            {
+                return 0;
+            }
+            else
+            {
+                return GetCurrentScene().Pot;
+            }
         }
     }
+    public OneHand()
+    {
 
+    }
     public async Task InitAsync()
     {
         //  OneHandSet = new();
@@ -293,15 +284,13 @@ public class OneHandExt
 
         //  DevOutput4();
 
-        foreach (var p in Players.OrderBy(a => a.SeatNum))
+        foreach(var p in Players.OrderBy(a=>a.SeatNum))
         {
             Console.WriteLine($"{p.SeatNum} {p.PlayerId}  {p.Position}");
         }
         // Players 改到show   在這裡先補入, 後續要往前移
 
         InitSections();
-        DetermineAnte();
-
         DetermineBlind();// 使用 section
         DetermineHeroHoleCards();
 
@@ -315,190 +304,7 @@ public class OneHandExt
 
         //最後才指定 seq=0 PlayerWithInitialChips;
         Actions.Where(a => a.Seq == 0).FirstOrDefault().Players = PlayerWithInitialChips;
-        DevOutput3();
-        // AdjPotandPlayerChips DOING  
-        //    DevOutput3();
-        AdjScenePotAndPlayerChips___RAISE();
-        UpdateScenePotAndPlayerChips();
-
-
-        AdjScenePotAndPlayerChips___RETURN();
-        UpdateScenePotAndPlayerChips();
-
-
-        DetermineRakeAndOthers();
-
-
-        //
-        DevOutput3();
-
-
-
-
     }
-
-    //public void AdjPotandPlayerChips()
-    //{
-    //    foreach(var scene in Actions)
-    //    {
-    //        string checking;
-    //        if (scene.ActName.ToUpper() == "RAISE")
-    //        {
-    //            checking = scene.PlayerId;
-    //            Console.WriteLine($"RAISE case for {checking} ");
-
-    //            // now to maintain givenPlayersPreviousActionsWhinTheSameStage
-
-
-
-    //        }
-    //        foreach(var player in Players)
-    //        {
-
-    //        }
-    //    }
-    //}
-
-    public void AdjScenePotAndPlayerChips___RETURN()
-    {
-        // Initialize AdjPot and Players' AdjChips
-        foreach (var scene in Actions)
-        {
-            scene.AdjPot = scene.Pot;
-            foreach (var player in scene.Players)
-            {
-                player.AdjChips = player.Chips;
-            }
-        }
-
-        // Process RETURN actions
-        foreach (var scene in Actions)
-        {
-            double diff = 0;
-            if (scene.ActName != null && scene.ActName.ToUpper() == "RETURN")
-            {
-                string checking = scene.PlayerId;
-                Console.WriteLine($"\nRETURN case for {checking} ");
-
-                // Get the uncalled bet amount
-                diff =(2)*(double) scene.ActAmt;
-
-                // Adjust the player's chips in the current scene
-                var targetPlayer = scene.Players.FirstOrDefault(a => a.PlayerId == checking);
-                if (targetPlayer != null)
-                {
-                    targetPlayer.AdjChips += diff; // Return the chips to the player
-                    scene.AdjPot -= diff; // Remove from pot
-                }
-
-                // Propagate adjustments to all future scenes
-                foreach (var scene2 in Actions.Where(a => a.Seq > scene.Seq))
-                {
-                    scene2.AdjPot -= diff; // Adjust pot
-
-                    // Adjust player's chips in future scenes
-                    var futurePlayer = scene2.Players.FirstOrDefault(p => p.PlayerId == checking);
-                    if (futurePlayer != null)
-                    {
-                        futurePlayer.AdjChips += diff;
-                    }
-                }
-            }
-        }
-    }
-
-    public void UpdateScenePotAndPlayerChips()
-    {
-        // init Adj of Pot and Player's Chips
-
-        foreach (var scene in Actions)
-        {
-
-            scene.Pot = scene.AdjPot;
-            foreach (var player in scene.Players)
-            {
-                player.Chips = player.AdjChips;
-            }
-        }
-    }
-    public void AdjScenePotAndPlayerChips___RAISE()
-    {
-        // init Adj of Pot and Player's Chips
-
-        foreach (var scene in Actions)
-        {
-            if (scene.Stage != null && scene.Stage.ToUpper() == "BLIND") scene.Stage = "PREFLOP";
-
-            // sceno.AdjPot and Players' AdjChips just the same, copy it 
-            scene.AdjPot = scene.Pot;
-            foreach (var player in scene.Players)
-            {
-                player.AdjChips = player.Chips;
-            }
-        }
-
-        // to actual Adj  DOING
-        foreach (var scene in Actions)
-        {
-            double diff = 0;
-            if (scene.ActName != null && scene.ActName.ToUpper() == "RAISE")
-            {
-                string checking = scene.PlayerId;
-                Console.WriteLine($"\nRAISE case for {checking} ");
-
-                // Get previous actions of the same player in the same stage
-                var previousActions = GetPreviousActionsInSameStage(checking, scene);
-
-                if (previousActions != null)
-                {
-                    Console.WriteLine($"Previous actions of {checking} in stage {scene.Stage}:");
-                    Console.WriteLine($"  Seq: {previousActions.Seq}, Action: {previousActions.ActName}, Amount: {previousActions.ActAmt}");
-                    var targetPlayer = scene.Players.Where(a => a.PlayerId == checking).FirstOrDefault();
-                    if (targetPlayer != null)
-                    {
-                        diff = (double)previousActions.ActAmt;
-                        targetPlayer.AdjChips -= diff;
-                        scene.AdjPot -= diff;
-                    }
-                }
-
-                // Step 3: Propagate adjustments to all future scenes
-                foreach (var scene2 in Actions.Where(a => a.Seq > scene.Seq))
-                {
-                    // var futureScene = Actions[j];
-
-                    // Carry forward the pot adjustment
-                    scene2.AdjPot -= diff;
-
-                    // Carry forward each player's chip adjustment
-                    foreach (var futurePlayer in scene2.Players.Where(a=>a.PlayerId== checking))
-                    {
-                        var previousPlayerState = scene.Players.FirstOrDefault(p => p.PlayerId == futurePlayer.PlayerId);
-                        if (previousPlayerState != null)
-                        {
-                            futurePlayer.AdjChips -= diff;
-                        }
-                    }
-                }
-
-
-            }
-        }
-    }
-
-    private Action GetPreviousActionsInSameStage(string playerId, Action currentScene)
-    {
-        return Actions
-            .Where(a => a.PlayerId == playerId) // Same player
-            .Where(a => a.Stage == currentScene.Stage) // Same stage
-            .Where(a => a.Seq < currentScene.Seq) // Previous actions only
-            .Where(a => a.ActAmt > 0) // Previous actions only
-
-            .OrderByDescending(a => a.Seq) // Sort by sequence
-            .FirstOrDefault();
-    }
-
-
     #region done!
 
     /// <summary>
@@ -538,48 +344,6 @@ public class OneHandExt
             }
         }
     }
-
-    /// <summary>
-    /// Total pot $126.72 | Rake $6 | Jackpot $3 | Bingo $0 | Fortune $0 | Tax $0
-    /// </summary>
-    public void DetermineRakeAndOthers()
-    {
-        foreach (var x in RawHandRecords)
-        {
-            var line = x.text;
-            if (line.Contains("Total pot"))
-            {
-                TablePot = ExtractAmount(line, "Total pot $");
-                TableRake = ExtractAmount(line, "Rake $");
-                TableJackpot = ExtractAmount(line, "Jackpot $");
-                TableBingo = ExtractAmount(line, "Bingo $");
-                TableFortune = ExtractAmount(line, "Fortune $");
-                TableTax = ExtractAmount(line, "Tax $");
-
-                Console.WriteLine($"Pot: {TablePot}, Rake: {TableRake}, Jackpot: {TableJackpot}, Bingo: {TableBingo}, Fortune: {TableFortune}, Tax: {TableTax}");
-            }
-        }
-    }
-
-    // Helper method to extract amounts safely
-    private double ExtractAmount(string line, string keyword)
-    {
-        int index = line.IndexOf(keyword);
-        if (index < 0) return 0.0; // If keyword is not found, return 0
-
-        index += keyword.Length;
-        var remainingText = line.Substring(index).Trim();
-        var parts = remainingText.Split(' ', '|'); // Split by space or pipe "|"
-
-        if (double.TryParse(parts[0], out double value))
-        {
-            return value;
-        }
-
-        return 0.0; // Return 0 if parsing fails
-    }
-
-
 
     /// <summary>
     /// 同時建立 Players 的每一個 Player 實例
@@ -724,22 +488,6 @@ public class OneHandExt
     {
         Action act = new Action();
         act.text = line;
-
-        // Special case: Uncalled bet being returned
-        string pattern0 = @"Uncalled bet \(\$(\d+(\.\d+)?)\) returned to (\S+)";
-        Match match0 = Regex.Match(line, pattern0);
-
-        if (match0.Success)
-        {
-            act.PlayerId = match0.Groups[3].Value;  // Extract player ID
-            act.ActName = "RETURN";
-            act.ActAmt = double.Parse(match0.Groups[1].Value);  // Extract amount
-        //    act.ActAmt = (-1) * act.ActAmt;
-            return act;
-        }
-
-
-
 
         // ( WIN )    (39) SHOWDOWN True   af9dcee9 collected $118.52 from pot
         if (line.Contains("collected"))
@@ -890,14 +638,6 @@ public class OneHandExt
                 {
                     //currentSection = "HandInfo";
                     raw.section = "Blind";
-                    //raw.section = "PREFLOP";
-                    continue;
-                }
-                if (x.Contains("ante"))
-                {
-                    //currentSection = "HandInfo";
-                    raw.section = "Ante";
-                    //raw.section = "PREFLOP";
                     continue;
                 }
             }
@@ -1146,44 +886,6 @@ public class OneHandExt
         }
     }
 
-    public void DetermineAnte()
-    {
-        /*
-            Example lines:
-            fb51de23: posts the ante $2
-            9a0300d8: posts the ante $2
-            Hero: posts the ante $2
-        */
-
-        var list = RawHandRecords.Where(a => a.text.Contains("posts the ante")).ToList();
-
-        foreach (var x in list)
-        {
-            var line = x.text;
-
-            // Regular expression to capture player ID and ante amount
-            string pattern = @"(\S+): posts the ante \$(\d+(\.\d+)?)";
-            Match match = Regex.Match(line, pattern);
-
-            if (match.Success)
-            {
-                string player = match.Groups[1].Value;  // Extract player ID
-                double amount = ParseAmount(match.Groups[2].Value); // Extract ante amount
-
-                var anteAction = new Action
-                {
-                    Stage = "ANTE",
-                    ActName = "ANTE",
-                    PlayerId = player,
-                    ActAmt = amount
-                };
-
-                x.Action = anteAction;
-            }
-        }
-    }
-
-
     public void DetermineBlind()
     {
         //  Blind
@@ -1262,7 +964,7 @@ public class OneHandExt
     /// <returns></returns>
     private double ExtractRaiseAmountExt(string text)//NOTE by Mark, 同時拿掉 static
     {
-
+        
 
 
         // Regular expression to match "raises $Y to $X"
@@ -1329,6 +1031,15 @@ public class OneHandExt
         // 🔹 設定探照灯 SpotTo
         SetSpotlight();
 
+        //  DevOutput1();
+
+        //  DevOutput2();
+
+        //   DevOutput3();
+
+        //DevOutput4();
+
+        DevOutputaAllIn();
 
 
     }
@@ -1465,7 +1176,7 @@ public class OneHandExt
                 //Console.WriteLine("XXX " + x.Action);
             }
         }
-        string lastStage = ""; // Track last known stage
+
         foreach (RawHandRecord x in RawHandRecords.Where(a => a.Action != null && a.Action.Seq > 0).OrderBy(a => a.Action.Seq))
         {
             if (x.Action != null)
@@ -1474,26 +1185,9 @@ public class OneHandExt
                 //   Console.WriteLine(x.Action);
                 Actions.Add(x.Action);
                 MAX_STEP = x.Action.Seq;
-
-                //need to carry Stage to next scene as well, how to fix
-                if (!string.IsNullOrEmpty(x.Action.Stage))
-                {
-                    lastStage = x.Action.Stage; // Update last known stage
-                }
-                else
-                {
-                    x.Action.Stage = lastStage; // Carry forward last stage
-                }
             }
 
         }
-
-        //Console.WriteLine("DEBUG... SEQ=0 要有 Player 的 chips");
-        //foreach (var p in PlayerWithInitialChips)
-        //{
-        //    Console.WriteLine($"   {p.PlayerId} {p.Chips}");
-        //}
-
 
         // 🔹 插入 `SceneId == 0` 的初始場景
         Actions.Add(new Action
@@ -1503,17 +1197,13 @@ public class OneHandExt
             PlayerId = "",
             RawText = "就座",
             CommunityCards = "",
-
             Pot = 0,
-
-            // NOTE by Mark, 03/04 15:00, 是否可以取到 Player 的初始 chips?
-            Players = PlayerWithInitialChips.Select(p => new Player(p)).ToList(), //Create deep copy of Players list
 
             //DEV NOTE: 確認可以照到多人
             //SpotTo = "0,1,2,3,4,5",
             SpotTo = "",
             //   Players = PlayerWithInitialChips // 改到 init 最後才指定?
-        }); ;
+        });
 
     }
 
@@ -1780,10 +1470,111 @@ public class OneHandExt
             }
         }
 
-
+        // Propagate IsAllIn state across all future scenes
+        //foreach (var scene in Actions.Where(a => a.Seq > 0))
+        //{
+        //    foreach (var p in scene.Players)
+        //    {
+        //        var top = Players.Where(a => a.PlayerId == p.PlayerId).FirstOrDefault();
+        //        if (top != null)
+        //        {
+        //            p.IsAllIn = top.IsAllIn; // Maintain All-In status
+        //        }
+        //    }
+        //}
     }
 
+    public void xxxSettingAllIn() //DOING
+    {
+        Console.WriteLine($"SettingAllIn *************");
+        // 先將頂層 Players 的 初始籌碼, 放到各 Scene 的 Players ,  籌 HGNI
+        foreach (var scene in Actions.Where(a => a.Seq > 0))
+        {
+            if (scene.IsAllIn)
+            {
+                Console.WriteLine($"SettingAllIn 準備將是否ALL-IN 也放在 scene.PlayerId = {scene.PlayerId} ");
+                var p = scene.Players.Where(a => a.PlayerId == scene.PlayerId).FirstOrDefault();
+                if (p != null)
+                {
+                    p.IsAllIn = p.IsAllIn;
+                    Console.WriteLine($"應該寫入...SettingAllIn 準備將是否ALL-IN 也放在 scene.PlayerId = {scene.PlayerId} ");
 
+                }
+                else
+                {
+                    Console.WriteLine($"要算是異常....應該寫入...SettingAllIn 準備將是否ALL-IN 也放在 scene.PlayerId = {scene.PlayerId} ");
+
+                }
+            }
+
+        }
+
+
+        //foreach (var scene in Actions.Where(a => a.Seq > 0))
+        //{
+        //    foreach (var p in scene.Players.Where(a => a.PlayerId == scene.PlayerId))
+        //    {
+        //        var top = Players.Where(a => a.PlayerId == p.PlayerId).FirstOrDefault();
+        //        if (top == null) continue;
+        //        //Console.WriteLine("");
+        //        //Console.WriteLine(""); Console.WriteLine("scene seq=" + scene.Seq + " actname =" + scene.ActName + " player=" + p.PlayerId + " setnum=" + p.SeatNum);
+        //        //Console.WriteLine("");
+        //        if (scene.ActName != null && scene.ActName != "") // FIX hole
+        //        {
+        //            //Console.WriteLine("scene.ActName " + scene.ActName );
+
+        //            if (scene.ActAmt > 0)
+        //            {
+        //                double amt = (double)scene.ActAmt;
+        //                if (scene.ActName == "WIN")
+        //                {
+        //                    amt = -amt;
+        //                }
+        //                //Console.WriteLine($"p.Chips {p.Chips}  top.Chips {top.Chips} (double)scene.ActAmt {amt} "  );
+
+
+        //                p.Chips = top.Chips - amt;
+        //                if (scene.ActName == "WIN")
+        //                {
+        //                    p.Chips = p.Chips + amt;
+        //                }
+
+        //                top.Chips = p.Chips;
+        //                Console.WriteLine($"p.Chips {p.Chips}  top.Chips {top.Chips} (double)scene.ActAmt {amt} ");
+
+        //                Console.WriteLine($"scene.Pot {scene.Pot} ");
+        //                scene.Pot = scene.Pot + amt;
+        //                Console.WriteLine($"scene.Pot {scene.Pot} ");
+
+
+        //            }
+        //        }
+        //    }
+        //    //將整個 Scene 的 Players Chips 往後全部複製
+        //    foreach (var scene2 in Actions.Where(a => a.Seq > 0).Where(a => a.Seq > scene.Seq))
+        //    {
+        //        scene2.Pot = scene.Pot;
+        //        Console.WriteLine($"scene.Seq = {scene.Seq}");
+        //        foreach (var p in scene2.Players)
+        //        {
+        //            Console.WriteLine($"p.PlayerId = {p.PlayerId} {p.Chips}");
+        //            var top = Players.Where(a => a.PlayerId == p.PlayerId).FirstOrDefault();//.Chips;
+        //            if (top == null)
+        //            {
+        //                Console.WriteLine($"另一個 NULL");
+        //                continue;
+        //            }
+        //            p.Chips = top.Chips;
+        //            p.IsAllIn = top.IsAllIn; // Carry forward all-in state
+        //            Console.WriteLine($"也檢查 all in 是否有帶到往後的 scene {p.IsAllIn} p.PlayerId = {p.PlayerId} {p.Chips}");
+        //            if (p.IsAllIn)
+        //            {
+        //                Console.WriteLine($"\t\t *** all in ***");
+        //            }
+        //        }
+        //    }
+        //}
+    }
 
     /// <summary>
     /// 設定公共牌
@@ -1853,52 +1644,32 @@ public class OneHandExt
     /// </summary>
     public void DevOutput3()
     {
-        Console.WriteLine();
-        foreach (var scene in Actions.OrderBy(a => a.Seq))
+        foreach (var scene in Actions)
         {
-            //Console.WriteLine("場景:" + scene.Seq + "  " + scene.text + "  探照灯:" + scene.SpotTo + " " + "ALL IN" + scene.IsAllIn + " ");
-            Console.Write($"{scene.Stage} ({scene.Seq}) pot: {scene.Pot:F2} ");
-            if (scene.AdjPot != scene.Pot)
-            {
-                Console.Write($" adj to {scene.AdjPot:F2} ");
-            }
+            Console.Write("場景:" + scene.Seq + "  " + scene.text + "  探照灯:" + scene.SpotTo + " " + "ALL IN" + scene.IsAllIn + " ");
+
             foreach (var p in scene.Players)
             {
 
                 //p.Chips = 100 * scene.Seq + 10 * p.SeatNum;
-                if (p.AdjChips == p.Chips)
-                {
-                    Console.Write($"[{p.SeatNum}]{p.Chips:F2}   ");
-                }
-                else
-                {
-                    Console.Write($"[{p.SeatNum}]{p.Chips:F2} =>adj to {p.AdjChips:F2}    ");
-                }
-
+                Console.Write($"[{p.SeatNum}]{p.Chips}   ");
             }
-
-            if (scene.ActAmt != null && scene.ActAmt != 0)
-            {
-                //                Console.Write($" {scene.text}");
-                Console.Write($" {scene.PlayerId}  {scene.ActName} {scene.ActAmt}");
-
-            }
-        //    Console.Write($" {scene.PlayerId}  {scene.ActName} {scene.ActAmt}");
+            Console.Write("底池=" + scene.Pot + " " + scene.text);
             Console.WriteLine();
         }
     }
 
-
+ 
     public void DevOutputaAllIn()
     {
-        foreach (var scene in Actions.OrderBy(a => a.Seq))
+        foreach (var scene in Actions.OrderBy(a=>a.Seq))
         {
-            Console.Write($"場景:  {scene.Seq} ALL IN:  {(scene.IsAllIn ? "有" : "沒")}  ");
+            Console.Write($"場景:  {scene.Seq} ALL IN:  { (scene.IsAllIn ? "有" : "沒")}  ");
             //if (scene.IsAllIn)
             //{
             //    Console.WriteLine("\n場景:" + scene.Seq + " 出現 ALL IN [" + scene.PlayerId + "] 應該要有記錄 ");
             //}
-            foreach (var p in scene.Players.OrderBy(a => a.SeatNum))
+            foreach (var p in scene.Players.OrderBy(a=>a.SeatNum))
             {
                 //Console.Write($"{p.SeatNum}[{p.PlayerId}] {(p.IsAllIn ? "T" : "_")}  ");
                 Console.Write($"[{p.SeatNum}]{(p.IsAllIn ? "有" : "_")} ");

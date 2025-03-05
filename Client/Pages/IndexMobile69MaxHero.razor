@@ -1,5 +1,5 @@
-﻿@page "/"
-@page "/one-hand-ext"
+﻿@* @page "/" *@
+@page "/mobile-69max-hero"
 @layout CleanLayout
 @using Ovb3HandPwa.Client.Data
 @using Ovb3HandPwa.Client.Models
@@ -14,7 +14,7 @@
 @using Radzen  <!-- for NotificationService, etc. -->
 @using System.Text
 
-<PageTitle>手牌回播（已處理 RAISE ANTE RAKE）</PageTitle>
+<PageTitle>手牌播放器（HERO視角 v3）</PageTitle>
 <div style="background-color: #333333; min-height: 100vh; padding: 10px;">
     <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-end;">
         <RadzenDropDown @bind-Value="selectedGameID"
@@ -45,7 +45,7 @@
             Click="GoToLastStepAsync"
             Disabled="@oneHand.NO_MORE_NEXT"
             Style="width: 40px;" />
-            <span style="color:white;font-size:50%; font-family:monospace">scene @oneHand.SceneId / @oneHand.MAX_STEP <br />  ** ver 1.17.0</span>
+            <span style="color:white;font-size:60%">版本: 1.8.4</span>
         }
         else
         {
@@ -80,8 +80,7 @@
        ------------------------------------------------------- */
     // private string pokerHand = DevData.pokerHand;  // The textual hand record
     private List<string> deckList = DevData.deckList;
-    // public OneHand oneHand = new();
-    public OneHandExt oneHand = new();
+    public OneHand oneHand = new();
     private bool isBtnPlaying;
 
     /* -------------------------------------------------------
@@ -260,12 +259,9 @@
         isDataReady = false;
         StateHasChanged();
 
-        // oneHand = new OneHand();
-        oneHand = new ();
-
+        oneHand = new OneHand();
         oneHand.RawText = DevData.GetPokerHandByGameID(selectedGameID);
         await oneHand.InitAsync();
-
 
         // **Detect number of players (6-max or 9-max) and adjust layout**
         // canvas.SeatCount = oneHand.Players.Count;
@@ -323,12 +319,6 @@
 
         // 公共牌
         await DrawCommunityCards();
-
-        // 抽水資訊 Rake...
-        if(oneHand.SceneId==oneHand.MAX_STEP){
-            await DrawTableStats();
-        }
-  
 
         // Dealer D 的圖像
         // await DealerButtonImg();
@@ -393,8 +383,7 @@
         // Draw player position
         string posName = player.Position;
         if (player.IsHero()) posName += "*";
-        // await Ctx.SetFontAsync("12px Segoe UI bold");
-        await Ctx.SetFontAsync("bold 12px Consolas, monospace");
+        await Ctx.SetFontAsync("12px Segoe UI bold");
         await Ctx.SetFillStyleAsync("#FFFFFF");
         await Ctx.FillTextAsync(posName, seatX - 10, seatY + 5);
 
@@ -462,35 +451,6 @@
     }
 
     #region 實際的動畫效果
-
-    /// <summary>
-    /// Draws table-related statistics (Rake, Jackpot, Bingo, Fortune, Tax) at the top-right corner.
-    /// </summary>
-    /// <returns></returns>
-    private async Task DrawTableStats()
-    {
-        // Define the starting position (top-right corner)
-        double startX = canvas.CenterX + 90; // Adjust for padding
-        double startY = 20;  // Top margin
-
-        double space = 12;
-
-        // Set font style
-        await Ctx.SetFontAsync("bold 10px Consolas, monospace");
-        await Ctx.SetFillStyleAsync("#FFFFFF"); // White text for readability
-
-        // Draw each statistic
-    //    await Ctx.FillTextAsync($"Pot: {oneHand.TablePot:0.00}", startX, startY);
-        
-        await Ctx.FillTextAsync($"Rake: {oneHand.TableRake:0.00}", startX, startY+20);
-        await Ctx.FillTextAsync($"Jackpot: {oneHand.TableJackpot:0.00}", startX, startY + 40);
-        await Ctx.FillTextAsync($"Bingo: {oneHand.TableBingo:0.00}", startX, startY + 60);
-        await Ctx.FillTextAsync($"Fortune: {oneHand.TableFortune:0.00}", startX, startY + 80);
-        await Ctx.FillTextAsync($"Tax: {oneHand.TableTax:0.00}", startX, startY + 100);
-    }
-
-
-
     /// <summary>
     /// 底池
     /// </summary>
@@ -498,19 +458,175 @@
     private async Task DrawPot()
     {
 
-        // if (oneHand.Pot > 0)
-        // {
+        if (oneHand.Pot > 0)
+        {
             string potText = $"POT: {oneHand.Pot:0.00}";
             await Ctx.SetFontAsync("bold 14px Consolas, monospace");
             //   await Ctx.SetFontAsync("18px Segoe UI");
             await Ctx.SetFillStyleAsync("#FFFFFF");
             // var potMetrics = await Ctx.MeasureTextAsync(potText);
             double potX = canvas.CenterX - 55;// (potMetrics.Width / 2);
-            double potY = canvas.CenterY - 10-50;
+            double potY = canvas.CenterY - 10;
             await Ctx.FillTextAsync(potText, potX, potY);
-        // }
+        }
     }
 
+    /// <summary>
+    /// 六人桌
+    /// </summary>
+    /// <returns></returns>
+    private async Task Draw6MaxPlayers()
+    {
+        int heroSeatNum = oneHand.Players.FirstOrDefault(p => p.IsHero())?.SeatNum ?? 0;
+        double heroFixedAngle = Math.PI / 2; // 讓 HERO 固定在 6 點鐘方向
+
+        int dealerSeatIndex = oneHand.dealerSeatIndex; // 取得 Dealer 按鈕的原始座位號
+        if (dealerSeatIndex < 0 || dealerSeatIndex >= 6) return; // 避免錯誤數據
+
+        // 🎯 **計算相對於 HERO 視角的 Dealer (BTN) 位置**
+        int dealerSeatOffset = (dealerSeatIndex - heroSeatNum + 6) % 6;
+        double dealerAngle = heroFixedAngle + (dealerSeatOffset * (2 * Math.PI / 6));
+
+        double shrinkFactor = 50; // 讓 Dealer 按鈕稍微靠近圓心
+        double dealerX = canvas.CenterX + (canvas.SeatRadiusX - shrinkFactor) * Math.Cos(dealerAngle);
+        double dealerY = canvas.CenterY + (canvas.SeatRadiusY - shrinkFactor) * Math.Sin(dealerAngle);
+
+        for (int i = 0; i < 6; i++)
+        {
+            int seatOffset = (i - heroSeatNum + 6) % 6;
+            double angle = heroFixedAngle + (seatOffset * (2 * Math.PI / 6));
+
+            double seatX = canvas.CenterX + canvas.SeatRadiusX * Math.Cos(angle);
+            double seatY = canvas.CenterY + canvas.SeatRadiusY * Math.Sin(angle);
+
+            var currentPlayerByScene = oneHand.GetCurrentScenePlayerBySeat(i);
+            if (currentPlayerByScene != null)
+            {
+                // 繪製座位圈
+                await Ctx.BeginPathAsync();
+                await Ctx.ArcAsync(seatX, seatY, canvas.SeatCircleRadius, 0, 2 * Math.PI, false);
+                await Ctx.SetFillStyleAsync("#333333");
+                await Ctx.FillAsync();
+                await Ctx.SetStrokeStyleAsync("#FFFFFF");
+                await Ctx.SetLineWidthAsync(2);
+                await Ctx.StrokeAsync();
+
+                // 🎯 2. 在圓圈內寫入玩家 Position
+                string posName = currentPlayerByScene.Position;
+                if (currentPlayerByScene.IsHero()) posName = posName + "*";
+                await Ctx.SetFontAsync("12px Segoe UI bold");
+                await Ctx.SetFillStyleAsync("#FFFFFF"); // 文字為白色
+                await Ctx.FillTextAsync(posName, seatX - 10, seatY + 5);
+
+                //  在圓圈下方寫入玩家籌碼
+                // double chip = currentPlayerByScene.Chips;
+                // await Ctx.SetFontAsync("14px Segoe UI");
+                // await Ctx.SetFillStyleAsync("#FFFFFF");
+                // await Ctx.FillTextAsync($"{chip:0.00}", seatX - 20, seatY + 40);
+
+                //  在圓圈下方寫入玩家籌碼，使用 Badge 效果
+                double chip = currentPlayerByScene.Chips;
+                string chipText = $"{chip:0.00}";
+                double badgeX = seatX - 25;
+                double badgeY = seatY + 18;
+                await DrawBadge(badgeX, badgeY, chipText);
+
+
+                // 在圓圈下方寫上玩家行動
+                string actionText = currentPlayerByScene.ActionDetail ?? "";
+                await Ctx.SetFontAsync("12px Segoe UI");
+                await Ctx.SetFillStyleAsync("yellow");
+                await Ctx.FillTextAsync(actionText, seatX - 20, seatY + 44);
+
+                // ALL-IN **Draw All-in Image if Player is All-in**
+                if (currentPlayerByScene.IsAllIn)
+                {
+                    // double allInX = seatX - 12;
+                    // double allInY = seatY - 35;
+                    // await Ctx.DrawImageAsync(AllInButton, allInX, allInY, 24, 24);
+
+                    double allInDistance = 35;  // Distance from player toward center
+                    double allInX = seatX - (allInDistance * Math.Cos(angle));
+                    double allInY = seatY - (allInDistance * Math.Sin(angle));
+
+                    await Ctx.DrawImageAsync(AllInButton, allInX - 12, allInY - 12, 24, 24);
+                }
+
+                // 繪製探照燈
+                bool spot = oneHand.GetCurrentScene().SpotTo.Contains(i + "");
+                if (spot)
+                {
+                    await Ctx.BeginPathAsync();
+                    await Ctx.SetStrokeStyleAsync("rgba(255, 255, 100, 0.15)");
+                    await Ctx.SetLineWidthAsync(40);
+                    await Ctx.MoveToAsync(canvas.CenterX, canvas.CenterY);
+                    await Ctx.LineToAsync(seatX, seatY);
+                    await Ctx.StrokeAsync();
+                }
+
+                // 繪製手牌
+                for (int j = 0; j < 2; j++)
+                {
+                    double xOffset = -18 + seatX - (canvas.CardWidth / 2) + (j * canvas.CardWidth);
+                    double yOffset = seatY - 20;
+                    if (cardImages.TryGetValue(currentPlayerByScene.HoleRef[j], out var cardImage))
+                    {
+                        await Ctx.DrawImageAsync(cardImage, xOffset, yOffset, canvas.CardWidth, canvas.CardHeight);
+                    }
+                }
+            }
+        }
+
+        // ✅ **畫出 Dealer 按鈕**
+        await Ctx.DrawImageAsync(DealerButton, dealerX - 12, dealerY - 12, 24, 24);
+    }
+    private async Task DrawBadge(double x, double y, string text)
+    {
+        double paddingX = 6; // Reduce horizontal padding for a tighter fit
+        double paddingY = 4; // Minimal vertical padding
+        double cornerRadius = 6; // Rounded corners
+
+        // 🎯 Measure text width dynamically
+        // await Ctx.SetFontAsync("12px Segoe UI bold");
+        // await Ctx.SetFontAsync("12px 'Consolas', monospace bold");
+        await Ctx.SetFontAsync("bold 14px Consolas, monospace");
+        var textMetrics = await Ctx.MeasureTextAsync(text);
+        double textWidth = textMetrics.Width;
+
+        // **Badge dimensions adjust dynamically**
+        double badgeWidth = textWidth + paddingX * 2; // Fit text width with padding
+        double badgeHeight = 18; // Fixed height for consistency
+
+        // 🎨 **Draw Rounded Rectangle (Dark Green Background)**
+        // await Ctx.BeginPathAsync();
+        // await Ctx.MoveToAsync(x + cornerRadius, y);
+        // await Ctx.LineToAsync(x + badgeWidth - cornerRadius, y);
+        // await Ctx.QuadraticCurveToAsync(x + badgeWidth, y, x + badgeWidth, y + cornerRadius);
+        // await Ctx.LineToAsync(x + badgeWidth, y + badgeHeight - cornerRadius);
+        // await Ctx.QuadraticCurveToAsync(x + badgeWidth, y + badgeHeight, x + badgeWidth - cornerRadius, y + badgeHeight);
+        // await Ctx.LineToAsync(x + cornerRadius, y + badgeHeight);
+        // await Ctx.QuadraticCurveToAsync(x, y + badgeHeight, x, y + badgeHeight - cornerRadius);
+        // await Ctx.LineToAsync(x, y + cornerRadius);
+        // await Ctx.QuadraticCurveToAsync(x, y, x + cornerRadius, y);
+        // await Ctx.ClosePathAsync();
+
+        // Set badge background color (Dark Green)
+        // await Ctx.SetFillStyleAsync("#116611");
+        // await Ctx.FillAsync();
+
+        // // Set border (optional)
+        // await Ctx.SetStrokeStyleAsync("#003300");
+        // await Ctx.SetLineWidthAsync(1);
+        // await Ctx.StrokeAsync();
+
+        // 🎯 **Calculate Centered Text Position**
+        double textX = x + (badgeWidth - textWidth) / 2; // Center horizontally
+        double textY = y + (badgeHeight / 2) + (12 / 3); // Center vertically
+
+        // Set text color and draw centered text
+        await Ctx.SetFillStyleAsync("#FFFFFF"); // Yellow text
+        await Ctx.FillTextAsync(text, textX, textY);
+    }
 
     private async Task DrawTableAndBrand()
     {
@@ -596,9 +712,6 @@
         // secondPreviousCommunityCards = previousCommunityCards;
         // previousCommunityCards = cards;
     }
-
-
-
 
     /// <summary>
     ///

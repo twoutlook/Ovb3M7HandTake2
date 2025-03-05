@@ -1,15 +1,10 @@
-﻿using Radzen.Blazor.Rendering;
-using System.Collections.Generic;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.AccessControl;
-using System.Text.RegularExpressions;
-using static System.Formats.Asn1.AsnWriter;
+﻿using System.Text.RegularExpressions;
 
 namespace Poker2033.Hand.Base.Model;
-
-public class OneHandExt
+//namespace Poker2033.Hand.Base.Model;
+public class OneHandExtBackup
 {
-    public OneHandExt() { }
+    public OneHandExtBackup() { }
     public string GetScenePrompt()
     {
 
@@ -19,7 +14,7 @@ public class OneHandExt
             return "人員就座，準備開始。";
         }
 
-        var scene = Actions.Where(a => a.Seq == SceneId).FirstOrDefault();
+        var scene = Scenes.Where(a => a.Seq == SceneId).FirstOrDefault();
         if (scene != null)
         {
             str = $"Keynote：｜{scene.Stage}｜{scene.PlayerId}｜{scene.ActName}｜{scene.ActAmt}｜{scene.RawText}｜（原始記錄）{scene.text}｜";
@@ -38,7 +33,7 @@ public class OneHandExt
         var str = "";
 
 
-        var scene = Actions.Where(a => a.Seq == SceneId).FirstOrDefault();
+        var scene = Scenes.Where(a => a.Seq == SceneId).FirstOrDefault();
         if (scene != null)
         {
             str = scene.CommunityCards;
@@ -68,7 +63,7 @@ public class OneHandExt
 
     public (int, string) xxxxxGetCurrentCommunityCardsExt()
     {
-        var scene = Actions.FirstOrDefault(a => a.Seq == SceneId);
+        var scene = Scenes.FirstOrDefault(a => a.Seq == SceneId);
         if (scene == null) return (0, ""); // Return empty string if no scene found
 
         return (scene.AllInCnt, scene.CommunityCards ?? ""); // Handle possible null values
@@ -77,7 +72,7 @@ public class OneHandExt
 
     public (int, string) GetCurrentCommunityCardsExt()
     {
-        var scene = Actions.FirstOrDefault(a => a.Seq == SceneId);
+        var scene = Scenes.FirstOrDefault(a => a.Seq == SceneId);
         if (scene == null) return (0, ""); // No scene found, return default values.
 
         int effectiveAllInCnt = scene.AllInCnt;
@@ -86,7 +81,7 @@ public class OneHandExt
         // If current scene has no AllInCnt, find the last known AllInCnt
         if (effectiveAllInCnt == 0)
         {
-            var previousScene = Actions
+            var previousScene = Scenes
                 .Where(a => a.Seq < SceneId && a.AllInCnt > 0)  // Find the last scene with AllInCnt > 0
                 .OrderByDescending(a => a.Seq)
                 .FirstOrDefault();
@@ -104,9 +99,9 @@ public class OneHandExt
     {
         return Players.Where(a => a.SeatNum == seatNum).FirstOrDefault();
     }
-    public Action GetCurrentScene()
+    public Scene GetCurrentScene()
     {
-        return Actions.Where(a => a.Seq == SceneId).FirstOrDefault();
+        return Scenes.Where(a => a.Seq == SceneId).FirstOrDefault();
     }
 
     public Player GetCurrentScenePlayerBySeat(int seatNum)
@@ -140,7 +135,7 @@ public class OneHandExt
     /// <returns></returns>
     public int Get_PREFLOP()
     {
-        var preflop = Actions.Where(a => a.Stage == "PREFLOP").FirstOrDefault();
+        var preflop = Scenes.Where(a => a.Stage == "PREFLOP").FirstOrDefault();
         if (preflop != null)
         {
             return preflop.Seq;
@@ -151,7 +146,7 @@ public class OneHandExt
 
     public bool Get_Is_PREFLOP()
     {
-        var preflop = Actions.Where(a => a.Stage == "PREFLOP").FirstOrDefault();
+        var preflop = Scenes.Where(a => a.Stage == "PREFLOP").FirstOrDefault();
         if (preflop != null)
         {
             if (SceneId >= preflop.Seq) return true;
@@ -252,7 +247,7 @@ public class OneHandExt
     public List<Player> PlayerWithInitialChips = new();
 
     public int ActionSeq = new();
-    public List<Action> Actions = new();
+    public List<Scene> Scenes = new();
     //Total pot $126.72 | Rake $6 | Jackpot $3 | Bingo $0 | Fortune $0 | Tax $0
     public double TablePot; // 由 手牌記錄 解析獲得的
     public double TableRake;
@@ -314,7 +309,7 @@ public class OneHandExt
         Settings();
 
         //最後才指定 seq=0 PlayerWithInitialChips;
-        Actions.Where(a => a.Seq == 0).FirstOrDefault().Players = PlayerWithInitialChips;
+        Scenes.Where(a => a.Seq == 0).FirstOrDefault().Players = PlayerWithInitialChips;
         DevOutput3();
         // AdjPotandPlayerChips DOING  
         //    DevOutput3();
@@ -362,7 +357,7 @@ public class OneHandExt
     public void AdjScenePotAndPlayerChips___RETURN()
     {
         // Initialize AdjPot and Players' AdjChips
-        foreach (var scene in Actions)
+        foreach (var scene in Scenes)
         {
             scene.AdjPot = scene.Pot;
             foreach (var player in scene.Players)
@@ -372,7 +367,7 @@ public class OneHandExt
         }
 
         // Process RETURN actions
-        foreach (var scene in Actions)
+        foreach (var scene in Scenes)
         {
             double diff = 0;
             if (scene.ActName != null && scene.ActName.ToUpper() == "RETURN")
@@ -392,7 +387,7 @@ public class OneHandExt
                 }
 
                 // Propagate adjustments to all future scenes
-                foreach (var scene2 in Actions.Where(a => a.Seq > scene.Seq))
+                foreach (var scene2 in Scenes.Where(a => a.Seq > scene.Seq))
                 {
                     scene2.AdjPot -= diff; // Adjust pot
 
@@ -411,7 +406,7 @@ public class OneHandExt
     {
         // init Adj of Pot and Player's Chips
 
-        foreach (var scene in Actions)
+        foreach (var scene in Scenes)
         {
 
             scene.Pot = scene.AdjPot;
@@ -425,7 +420,7 @@ public class OneHandExt
     {
         // init Adj of Pot and Player's Chips
 
-        foreach (var scene in Actions)
+        foreach (var scene in Scenes)
         {
             if (scene.Stage != null && scene.Stage.ToUpper() == "BLIND") scene.Stage = "PREFLOP";
 
@@ -438,7 +433,7 @@ public class OneHandExt
         }
 
         // to actual Adj  DOING
-        foreach (var scene in Actions)
+        foreach (var scene in Scenes)
         {
             double diff = 0;
             if (scene.ActName != null && scene.ActName.ToUpper() == "RAISE")
@@ -463,7 +458,7 @@ public class OneHandExt
                 }
 
                 // Step 3: Propagate adjustments to all future scenes
-                foreach (var scene2 in Actions.Where(a => a.Seq > scene.Seq))
+                foreach (var scene2 in Scenes.Where(a => a.Seq > scene.Seq))
                 {
                     // var futureScene = Actions[j];
 
@@ -486,9 +481,9 @@ public class OneHandExt
         }
     }
 
-    private Action GetPreviousActionsInSameStage(string playerId, Action currentScene)
+    private Scene GetPreviousActionsInSameStage(string playerId, Scene currentScene)
     {
-        return Actions
+        return Scenes
             .Where(a => a.PlayerId == playerId) // Same player
             .Where(a => a.Stage == currentScene.Stage) // Same stage
             .Where(a => a.Seq < currentScene.Seq) // Previous actions only
@@ -720,9 +715,9 @@ public class OneHandExt
     /// </summary>
     /// <param name="line"></param>
     /// <returns></returns>
-    public static Action ParseAction(string line)
+    public static Scene ParseAction(string line)
     {
-        Action act = new Action();
+        Scene act = new Scene();
         act.text = line;
 
         // Special case: Uncalled bet being returned
@@ -991,9 +986,9 @@ public class OneHandExt
 
         return "";  // If no match, return empty square brackets
     }
-    public static Action ParseCollectedAction(string line)
+    public static Scene ParseCollectedAction(string line)
     {
-        Action act = new();
+        Scene act = new();
         // Match the line to extract player and amount
         string pattern = @"(\S+) collected \$([\d.]+) from pot"; // Match player ID and amount
         Match match = Regex.Match(line, pattern);
@@ -1059,7 +1054,7 @@ public class OneHandExt
             if (!string.IsNullOrEmpty(allCards))
             {
                 Console.WriteLine($"檢查全部的公共牌 {allCards} 及跑馬次 {AllInCnt}");
-                var p = new Action();
+                var p = new Scene();
                 p.AllInCnt = AllInCnt;
                 p.Stage = raw.section;
                 p.ActName = "COMMUNITY";
@@ -1131,7 +1126,7 @@ public class OneHandExt
                 x.HoleCards = holeCards;
                 x.HoleCardsOwner = player;
 
-                var p = new Action();
+                var p = new Scene();
                 p.Stage = "PREFLOP";
                 p.ActName = "hole";
                 p.PlayerId = player;
@@ -1170,7 +1165,7 @@ public class OneHandExt
                 string player = match.Groups[1].Value;  // Extract player ID
                 double amount = ParseAmount(match.Groups[2].Value); // Extract ante amount
 
-                var anteAction = new Action
+                var anteAction = new Scene
                 {
                     Stage = "ANTE",
                     ActName = "ANTE",
@@ -1209,7 +1204,7 @@ public class OneHandExt
 
 
 
-                var p = new Action();
+                var p = new Scene();
                 p.Stage = "Blind";
                 p.ActName = shortBlind;
                 p.PlayerId = player;
@@ -1339,7 +1334,7 @@ public class OneHandExt
     /// </summary>
     public void SetSpotlight()
     {
-        foreach (var scene in Actions.Where(a => a.Seq > 0))// BUG FIXED, SpotTo was overwritten
+        foreach (var scene in Scenes.Where(a => a.Seq > 0))// BUG FIXED, SpotTo was overwritten
         {
             scene.SpotTo = ""; // 預設沒有 spotlight
 
@@ -1378,7 +1373,7 @@ public class OneHandExt
       // 最後有比牌時, 才將牌翻開。
 
         // NOTE by Mark, 啟用 ACTUAL_SEAT, 解決 動態 六人或九人桌 的需求       
-        foreach (var x in Actions)
+        foreach (var x in Scenes)
         {
             x.Players = new List<Player>(); // Initialize the list before adding players
             for (int i = 0; i < ACTUAL_SEAT; i++) // Ensure no out-of-range errors
@@ -1390,7 +1385,7 @@ public class OneHandExt
 
 
         var step = 0;
-        foreach (var scene in Actions)
+        foreach (var scene in Scenes)
         {
             step++;
             foreach (var p in scene.Players)
@@ -1472,7 +1467,7 @@ public class OneHandExt
             {
                 x.Action.text = x.text; // 為了在頁面仍能參照原始文本
                 //   Console.WriteLine(x.Action);
-                Actions.Add(x.Action);
+                Scenes.Add(x.Action);
                 MAX_STEP = x.Action.Seq;
 
                 //need to carry Stage to next scene as well, how to fix
@@ -1496,7 +1491,7 @@ public class OneHandExt
 
 
         // 🔹 插入 `SceneId == 0` 的初始場景
-        Actions.Add(new Action
+        Scenes.Add(new Scene
         {
             Seq = 0,
             ActName = "START",
@@ -1522,7 +1517,7 @@ public class OneHandExt
     /// </summary>
     public void SettingShowdAt()
     {
-        foreach (var scene in Actions)
+        foreach (var scene in Scenes)
         {
             if (scene.ActName == "SHOW")
             {
@@ -1584,7 +1579,7 @@ public class OneHandExt
     // 獨立處理 FOLD at
     public void SettingFoldAt()
     {
-        foreach (var scene in Actions)
+        foreach (var scene in Scenes)
         {
             foreach (var p in scene.Players)
             {
@@ -1611,11 +1606,11 @@ public class OneHandExt
     /// </summary>
     public void SettingAcitonDetails()
     {
-        foreach (var scene in Actions.Where(a => a.Seq >= 1))
+        foreach (var scene in Scenes.Where(a => a.Seq >= 1))
         {
             if (scene.text.Contains("***"))// 要清掉在此之後的
             {
-                foreach (var scene2 in Actions.Where(a => a.Seq >= scene.Seq))
+                foreach (var scene2 in Scenes.Where(a => a.Seq >= scene.Seq))
                     foreach (var p in scene2.Players)
                     {
                         p.ActionDetail = "";
@@ -1640,7 +1635,7 @@ public class OneHandExt
 
                         var copyMore = p.ActionDetail;
                         ////或是一次性按同一個 player 全部先填上, 後面再覆蓋即可
-                        var list2 = Actions.Where(a => a.Seq > scene.Seq);
+                        var list2 = Scenes.Where(a => a.Seq > scene.Seq);
                         //Console.WriteLine("list2 " + list2.Count());
 
 
@@ -1668,7 +1663,7 @@ public class OneHandExt
     {
         Console.WriteLine($"SettingAmoutAndPot *************");
         // 先將頂層 Players 的 初始籌碼, 放到各 Scene 的 Players ,  籌 HGNI
-        foreach (var scene in Actions.Where(a => a.Seq > 0))
+        foreach (var scene in Scenes.Where(a => a.Seq > 0))
         {
             //Console.WriteLine($"scene.Seq = {scene.Seq}");
             foreach (var p in scene.Players)
@@ -1687,7 +1682,7 @@ public class OneHandExt
         }
 
 
-        foreach (var scene in Actions.Where(a => a.Seq > 0))
+        foreach (var scene in Scenes.Where(a => a.Seq > 0))
         {
             foreach (var p in scene.Players.Where(a => a.PlayerId == scene.PlayerId))
             {
@@ -1728,7 +1723,7 @@ public class OneHandExt
                 }
             }
             //將整個 Scene 的 Players Chips 往後全部複製
-            foreach (var scene2 in Actions.Where(a => a.Seq > 0).Where(a => a.Seq > scene.Seq))
+            foreach (var scene2 in Scenes.Where(a => a.Seq > 0).Where(a => a.Seq > scene.Seq))
             {
                 scene2.Pot = scene.Pot;
                 //      Console.WriteLine($"scene.Seq = {scene.Seq}");
@@ -1756,7 +1751,7 @@ public class OneHandExt
     {
         Console.WriteLine($"SettingAllIn *************");
 
-        foreach (var scene in Actions.Where(a => a.Seq > 0))
+        foreach (var scene in Scenes.Where(a => a.Seq > 0))
         {
             if (scene.ActName == "ALL-IN")
             {
@@ -1768,7 +1763,7 @@ public class OneHandExt
                     p.IsAllIn = true;
                     Console.WriteLine($"Player {p.PlayerId} is now marked as All-In");
                     Console.WriteLine($"*** 在這情況下,這立 Player 在往後的 Scene 都是 all in 狀態");
-                    foreach (var scene2 in Actions.Where(a => a.Seq > scene.Seq))
+                    foreach (var scene2 in Scenes.Where(a => a.Seq > scene.Seq))
                     {
                         var p2 = scene2.Players.Where(a => a.PlayerId == scene.PlayerId).FirstOrDefault();
                         if (p2 != null)
@@ -1791,7 +1786,7 @@ public class OneHandExt
     public void SettingCommunityCards()
     {
         // 
-        foreach (var scene in Actions.Where(a => a.Seq > 0)) // BUG FIXED
+        foreach (var scene in Scenes.Where(a => a.Seq > 0)) // BUG FIXED
         {
             if (scene.ActName == "COMMUNITY")
             {
@@ -1817,7 +1812,7 @@ public class OneHandExt
     /// </summary>
     public void DevOutput1()
     {
-        foreach (var scene in Actions)
+        foreach (var scene in Scenes)
         {
             Console.Write("場景:" + scene.Seq + "  ");
 
@@ -1834,7 +1829,7 @@ public class OneHandExt
     /// </summary>
     public void DevOutput2()
     {
-        foreach (var scene in Actions)
+        foreach (var scene in Scenes)
         {
             Console.Write("場景:" + scene.Seq + "  ");
 
@@ -1854,7 +1849,7 @@ public class OneHandExt
     public void DevOutput3()
     {
         Console.WriteLine();
-        foreach (var scene in Actions.OrderBy(a => a.Seq))
+        foreach (var scene in Scenes.OrderBy(a => a.Seq))
         {
             //Console.WriteLine("場景:" + scene.Seq + "  " + scene.text + "  探照灯:" + scene.SpotTo + " " + "ALL IN" + scene.IsAllIn + " ");
             Console.Write($"{scene.Stage} ({scene.Seq}) pot: {scene.Pot:F2} ");
@@ -1891,7 +1886,7 @@ public class OneHandExt
 
     public void DevOutputaAllIn()
     {
-        foreach (var scene in Actions.OrderBy(a => a.Seq))
+        foreach (var scene in Scenes.OrderBy(a => a.Seq))
         {
             Console.Write($"場景:  {scene.Seq} ALL IN:  {(scene.IsAllIn ? "有" : "沒")}  ");
             //if (scene.IsAllIn)
@@ -1912,7 +1907,7 @@ public class OneHandExt
     /// </summary>
     public void DevOutput3Sim()
     {
-        foreach (var scene in Actions)
+        foreach (var scene in Scenes)
         {
             Console.Write("場景:" + scene.Seq + "  ");
 
