@@ -18,6 +18,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Poker2033LibConsole", "Poke
 		{DAD5C5D4-D756-4567-B728-4E4DFF295106} = {DAD5C5D4-D756-4567-B728-4E4DFF295106}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ovb3M7Db.Client", "..\Ovb3M7Db\Client\Ovb3M7Db.Client.csproj", "{C9EE22E8-0F63-4604-94E7-AE7EC70B7D13}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ovb3M7Db.Server", "..\Ovb3M7Db\Server\Ovb3M7Db.Server.csproj", "{FBF733FF-417A-42A9-884A-A3E73B49B24B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +48,14 @@ Global
 		{AA8D22DF-11C6-4945-AFF2-E7D967E4C08D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA8D22DF-11C6-4945-AFF2-E7D967E4C08D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA8D22DF-11C6-4945-AFF2-E7D967E4C08D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9EE22E8-0F63-4604-94E7-AE7EC70B7D13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9EE22E8-0F63-4604-94E7-AE7EC70B7D13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9EE22E8-0F63-4604-94E7-AE7EC70B7D13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9EE22E8-0F63-4604-94E7-AE7EC70B7D13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBF733FF-417A-42A9-884A-A3E73B49B24B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBF733FF-417A-42A9-884A-A3E73B49B24B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBF733FF-417A-42A9-884A-A3E73B49B24B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBF733FF-417A-42A9-884A-A3E73B49B24B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

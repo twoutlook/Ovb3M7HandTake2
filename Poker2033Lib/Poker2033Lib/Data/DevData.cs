@@ -21,6 +21,7 @@ public static class DevData
         if (gameID == 15) return pokerHand15;
         if (gameID == 16) return pokerHand16;
         if (gameID == 17) return pokerHand17;
+        if (gameID == 18) return pokerHand18;
 
         return pokerHand1;
 
@@ -37,7 +38,59 @@ public static class DevData
     "2s", "2h", "2d", "2c", "Xx"
 };
     public static string pokerHand { get { return pokerHand1; } }
+    public static string pokerHand18 = @"
+Poker Hand #HD1588374734: Hold'em No Limit ($5/$10) - 2024/01/15 16:47:24
+Table 'NLHDiamond4' 6-max Seat #2 is the button
+Seat 1: 853fe6fe ($1,000 in chips)
+Seat 2: ea264d76 ($1,335.07 in chips)
+Seat 3: 37dc24ef ($1,000 in chips)
+Seat 4: 3fae4ae5 ($1,000 in chips)
+Seat 5: 8f0d7ebb ($1,125.89 in chips)
+Seat 6: Hero ($1,255 in chips)
+37dc24ef: posts small blind $5
+3fae4ae5: posts big blind $10
+*** HOLE CARDS ***
+Dealt to 853fe6fe 
+Dealt to ea264d76 
+Dealt to 37dc24ef 
+Dealt to 3fae4ae5 
+Dealt to 8f0d7ebb 
+Dealt to Hero [3s 3c]
+8f0d7ebb: folds
+Hero: folds
+853fe6fe: folds
+ea264d76: folds
+37dc24ef: raises $20 to $30
+3fae4ae5: raises $65 to $95
+37dc24ef: raises $120 to $215
+3fae4ae5: calls $120
+*** FLOP *** [2d 4h Tc]
+37dc24ef: bets $141.9
+3fae4ae5: calls $141.9
+*** TURN *** [2d 4h Tc] [Td]
+37dc24ef: bets $178
+3fae4ae5: calls $178
+*** RIVER *** [2d 4h Tc Td] [Kh]
+37dc24ef: bets $465.1 and is all-in
+3fae4ae5: calls $465.1 and is all-in
+37dc24ef: shows [5s Ks] (Pair of Kings and Pair of Tens)
+3fae4ae5: shows [9s 9c] (Pair of Tens and Pair of Nines)
+*** SHOWDOWN ***
+37dc24ef collected $1,980 from pot
+*** SUMMARY ***
+Total pot $2,000 | Rake $10 | Jackpot $10 | Bingo $0 | Fortune $0 | Tax $0
+Board [2d 4h Tc Td Kh]
+Seat 1: 853fe6fe folded before Flop (didn't bet)
+Seat 2: ea264d76 (button) folded before Flop (didn't bet)
+Seat 3: 37dc24ef (small blind) showed [5s Ks] and won ($1,980) with Pair of Kings and Pair of Tens
+Seat 4: 3fae4ae5 (big blind) showed [9s 9c] and lost with Pair of Tens and Pair of Nines
+Seat 5: 8f0d7ebb folded before Flop (didn't bet)
+Seat 6: Hero folded before Flop (didn't bet)
 
+
+
+
+";
     public static string pokerHand17 = @"
 Poker Hand #HD1710476385: Hold'em No Limit ($2/$5) - 2024/04/01 15:13:18
 Table 'NLHPlatinum12' 6-max Seat #2 is the button

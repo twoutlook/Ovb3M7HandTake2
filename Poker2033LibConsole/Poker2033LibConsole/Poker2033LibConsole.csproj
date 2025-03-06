@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Ovb3M7Db\Server\Ovb3M7Db.Server.csproj" />
     <ProjectReference Include="..\..\Poker2033Lib\Poker2033Lib\Poker2033Lib.csproj" />
   </ItemGroup>
 

@@ -1,11 +1,12 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Poker2033.Hand;
 //namespace Poker2033.Hand;
 public class OneHandExt
 {
     public OneHandExt() { }
-  
+
 
     public (bool result, decimal Pot, decimal rakeSum) TestFinalPot()
     {
@@ -176,7 +177,8 @@ public class OneHandExt
     // ver: 1.26.1 微調 手牌原始資料 位置及字體
     // ver: 1.26.2 微調 手牌原始資料 位置及字體
     // ver: 1.26.3 微調 手牌原始資料 位置及字體
-    public string Ver { get { return "ver: 1.26.3 "; } }
+    // ver: 1.26.3 BUG FIXED on multiple RAISE
+    public string Ver { get { return "ver: 1.27.0 "; } }
 
 
     public string RawText { get; set; }
@@ -242,7 +244,7 @@ public class OneHandExt
 
     public string GetCuurentSceneRawText()
     {
-       return GetCurrentScene()?.text ?? string.Empty;
+        return GetCurrentScene()?.text ?? string.Empty;
     }
 
 
@@ -288,12 +290,13 @@ public class OneHandExt
 
 
         Patch___ALLIN();
+        //DevOutput3Basic();
         // AdjPotandPlayerChips DOING  
         //    DevOutput3();
         AdjScenePotAndPlayerChips___RAISE();
         UpdateScenePotAndPlayerChips();
 
-
+        //DevOutput3();
 
 
 
@@ -348,11 +351,11 @@ public class OneHandExt
             if (scene.ActName != null && scene.ActName.ToUpper() == "RAISE")
             {
                 string checking = scene.PlayerId;
-              //  Console.WriteLine($"\nPatch___RAISE_ALLIN 找到 RAISE, PlayerId={checking} ");
+                //  Console.WriteLine($"\nPatch___RAISE_ALLIN 找到 RAISE, PlayerId={checking} ");
 
                 if (scene.IsAllIn)
                 {
-                 //   Console.WriteLine($"  確認是 ALL-IN   {checking} ");
+                    //   Console.WriteLine($"  確認是 ALL-IN   {checking} ");
                     var hotPlayer = scene.Players.FirstOrDefault(a => a.PlayerId == scene.PlayerId);
                     if (hotPlayer != null)
                     {
@@ -367,7 +370,7 @@ public class OneHandExt
                             }
                         }
                     }
-                }            
+                }
 
             }
         }
@@ -396,11 +399,11 @@ public class OneHandExt
             if (scene.ActName != null && scene.ActName.ToUpper() == "CALL")
             {
                 string checking = scene.PlayerId;
-              //  Console.WriteLine($"\n CALL 仿 Patch___RAISE_ALLIN 找到 RAISE, PlayerId={checking} ");
+                //  Console.WriteLine($"\n CALL 仿 Patch___RAISE_ALLIN 找到 RAISE, PlayerId={checking} ");
 
                 if (scene.IsAllIn)
                 {
-               //     Console.WriteLine($"  確認是 ALL-IN   {checking} ");
+                    //     Console.WriteLine($"  確認是 ALL-IN   {checking} ");
                     //  var previousActions = GetPreviousActionsInSameStage(checking, scene);
                     var hotPlayer = scene.Players.FirstOrDefault(a => a.PlayerId == scene.PlayerId);
                     if (hotPlayer != null)
@@ -485,7 +488,7 @@ public class OneHandExt
             if (scene.ActName != null && scene.ActName.ToUpper() == "RETURN")
             {
                 string checking = scene.PlayerId;
-              //  Console.WriteLine($"\nRETURN case for {checking} ");
+                //  Console.WriteLine($"\nRETURN case for {checking} ");
 
                 // Get the uncalled bet amount
                 diff = (2) * (decimal)scene.ActAmt;
@@ -547,13 +550,106 @@ public class OneHandExt
         // to actual Adj  DOING
         foreach (var scene in Scenes)
         {
+            decimal diffPot = 0;
+            decimal diffPlayerChips = 0;
+            if (scene.ActName != null && scene.ActName.ToUpper() == "RAISE")
+            {
+                string checking = scene.PlayerId;
+                // NOTE by Mark, 03/06 11:26
+                // 目前在第一個 RAISE 是正確的,
+                // 但是第二個 RAISE 就不正確。
+                // 改變 校正的做法
+                // 1. 取得這條街的最初 AmtStreeBegin
+                // 2. 取得本次 raise 動作 的原本的金額 AmtRaiseScene
+                // 3. 取得本次 raise 動作 的金額 AmtAmt
+                // 4. 要校正 AmtRaiseScene= AmtStreeBegin - AmtAmt
+                var previousActions = GetPreviousActionsInSameStage(checking, scene);
+
+                if (previousActions != null)
+                {
+                    // 底池部分 OK
+                    diffPot = (decimal)previousActions.ActAmt;
+                    scene.AdjPot -= diffPot;
+                    // NOTE by Mark, 03/06 11:26
+                    // 目前在第一個 RAISE 是正確的,
+                    // 但是第二個 RAISE 就不正確。
+                    // 改變 校正的做法
+                    // 1. 取得這條街的最初 AmtStreeBegin
+                    // 2. 取得本次 raise 動作 的原本的金額 AmtRaiseScene, 以 Temp 暫存
+                    // 3. 取得本次 raise 動作 的金額 ActAmt
+
+                    // 4. 所以校正的金額為 AmtStreeBegin - ActAmt -ToFixAmt
+                    //                       1000 -30 = 970      970-965 =5
+                    /* 5. 從本次起至最後先 校正 5
+(0)  pot: 0.00   [2]1000.00 
+Blind    (1)  pot: 5.00   [2]995.00   37dc24ef  SB 5
+PREFLOP  (8)  pot: 45.00  [2]965.00   37dc24ef  RAISE 30
+PREFLOP (10)  pot: 355.00 [2]750.00   37dc24ef  RAISE 215
+ */
+
+                    //Console.WriteLine($"Previous actions of {checking} in stage {scene.Stage}:");
+                    //Console.WriteLine($"  Seq: {previousActions.Seq}, Action: {previousActions.ActName}, Amount: {previousActions.ActAmt}");
+                    var playerStreetStartingChips = GetStreetFirstActionPlayerAdjChips(checking, scene);
+                    //     diffPlayerChips = playerStreetStartingChips-;//
+                    var targetPlayer = scene.Players.FirstOrDefault(a => a.PlayerId == checking);
+                    if (targetPlayer != null)
+                    {
+                        diffPlayerChips = playerStreetStartingChips - (decimal)scene.ActAmt - targetPlayer.AdjChips;
+
+
+                    //    targetPlayer.AdjChips += diffPlayerChips; //BUG FIXED
+
+                    }
+
+
+                    // Step 3: Propagate adjustments to all future scenes
+                    foreach (var scene2 in Scenes.Where(a => a.Seq >= scene.Seq))
+                    {
+                        // var futureScene = Actions[j];
+
+                        // Carry forward the pot adjustment
+                        scene2.AdjPot -= diffPot; // BUG FIXED
+
+                        var targetPlayerX = scene2.Players.FirstOrDefault(a => a.PlayerId == checking);
+                        if (targetPlayerX != null)
+                        {
+
+                            targetPlayerX.AdjChips += diffPlayerChips; //BUG FIXED
+
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+    public void AdjScenePotAndPlayerChips___RAISE_BUG()
+    {
+        // init Adj of Pot and Player's Chips
+
+        foreach (var scene in Scenes)
+        {
+            if (scene.Stage != null && scene.Stage.ToUpper() == "BLIND") scene.Stage = "PREFLOP";
+
+            // sceno.AdjPot and Players' AdjChips just the same, copy it 
+            scene.AdjPot = scene.Pot;
+            foreach (var player in scene.Players)
+            {
+                player.AdjChips = player.Chips;
+            }
+        }
+
+        // to actual Adj  DOING
+        foreach (var scene in Scenes)
+        {
             decimal diff = 0;
             if (scene.ActName != null && scene.ActName.ToUpper() == "RAISE")
             {
                 string checking = scene.PlayerId;
-               // Console.WriteLine($"\nRAISE case for {checking} ");
-
-                // Get previous actions of the same player in the same stage
+                // NOTE by Mark, 03/06 11:26
+                // 目前在第一個 RAISE 是正確的,
+                // 但是第二個 RAISE 就不正確。
+                // 改變 校正的做法
                 var previousActions = GetPreviousActionsInSameStage(checking, scene);
 
                 if (previousActions != null)
@@ -564,7 +660,7 @@ public class OneHandExt
                     if (targetPlayer != null)
                     {
                         diff = (decimal)previousActions.ActAmt;
-                        targetPlayer.AdjChips -= diff;
+                        targetPlayer.AdjChips += diff; //BUG FIXED
                         scene.AdjPot -= diff;
                     }
                 }
@@ -575,7 +671,7 @@ public class OneHandExt
                     // var futureScene = Actions[j];
 
                     // Carry forward the pot adjustment
-                    scene2.AdjPot -= diff;
+                    scene2.AdjPot += diff; // BUG FIXED
 
                     // Carry forward each player's chip adjustment
                     foreach (var futurePlayer in scene2.Players.Where(a => a.PlayerId == checking))
@@ -595,7 +691,7 @@ public class OneHandExt
 
     private Scene GetPreviousActionsInSameStage(string playerId, Scene currentScene)
     {
-        return Scenes
+        var scene = Scenes
             .Where(a => a.PlayerId == playerId) // Same player
             .Where(a => a.Stage == currentScene.Stage) // Same stage
             .Where(a => a.Seq < currentScene.Seq) // Previous actions only
@@ -603,8 +699,36 @@ public class OneHandExt
 
             .OrderByDescending(a => a.Seq) // Sort by sequence
             .FirstOrDefault();
-    }
+        if (scene != null)
+        {
+            return scene;
+        }
+        //可以是自己沒有之前沒叫做的
+        return null;
 
+
+        //        throw new Exception("GetPreviousActionsInSameStage 有誤!");
+    }
+    private decimal GetStreetFirstActionPlayerAdjChips(string playerId, Scene currentScene)
+    {
+        var scene = Scenes.Where(a => a.PlayerId == playerId) // Same player
+                        .Where(a => a.Stage == currentScene.Stage) // Same stage                        
+                        .OrderBy(a => a.Seq) // Sort by sequence
+                        .FirstOrDefault();
+
+        // 之前的盲點, seq=1 剛好就 raise 的起點, 但已經 small blind
+        if (currentScene.Stage == "PREFLOP") scene = Scenes.FirstOrDefault(a => a.Seq == 0);
+
+        if (scene != null)
+        {
+            var player = scene.Players.FirstOrDefault(a => a.PlayerId == playerId);
+            if (player != null)
+            {
+                return player.AdjChips;
+            }
+        }
+        throw new Exception("GetStreetFirstActionPlayerChips 有誤!");
+    }
 
     #region done!
 
@@ -844,7 +968,7 @@ public class OneHandExt
             act.PlayerId = match0.Groups[3].Value;  // Extract player ID
             act.ActName = "RETURN";
             act.ActAmt = decimal.Parse(match0.Groups[1].Value);  // Extract amount
-                                                                //    act.ActAmt = (-1) * act.ActAmt;
+                                                                 //    act.ActAmt = (-1) * act.ActAmt;
             return act;
         }
 
@@ -1079,6 +1203,12 @@ public class OneHandExt
         Scene act = new();
         // Match the line to extract player and amount
         string pattern = @"(\S+) collected \$([\d.]+) from pot"; // Match player ID and amount
+
+        // NOTE by Mark, 03/06, 
+        // 37dc24ef collected $1,980 from pot 
+        // BUG 沒能解析到 1980 
+        line = line.Replace(",", "");
+
         Match match = Regex.Match(line, pattern);
 
         if (match.Success)
@@ -1139,7 +1269,7 @@ public class OneHandExt
             (var AllInCnt, var allCards) = ParseCommunityCardsExt(raw.text);
             if (!string.IsNullOrEmpty(allCards))
             {
-              //  Console.WriteLine($"檢查全部的公共牌 {allCards} 及跑馬次 {AllInCnt}");
+                //  Console.WriteLine($"檢查全部的公共牌 {allCards} 及跑馬次 {AllInCnt}");
                 var p = new Scene();
                 p.AllInCnt = AllInCnt;
                 p.Stage = raw.section;
@@ -1834,7 +1964,7 @@ public class OneHandExt
     }
     public void SettingAllIn()
     {
-        
+
         foreach (var scene in Scenes.Where(a => a.Seq > 0))
         {
             if (scene.ActName == "ALL-IN")
@@ -1969,7 +2099,38 @@ public class OneHandExt
         }
     }
 
+    public void DevOutput3Basic()
+    {
+        Console.WriteLine();
+        foreach (var scene in Scenes.OrderBy(a => a.Seq))
+        {
+            var allinScene = scene.IsAllIn ? "@" : "";
+            //Console.WriteLine("場景:" + scene.Seq + "  " + scene.text + "  探照灯:" + scene.SpotTo + " " + "ALL IN" + scene.IsAllIn + " ");
+            Console.Write($"{scene.Stage} ({scene.Seq}) {allinScene} pot: {scene.Pot:F2} ");
+            //if (scene.AdjPot != scene.Pot)
+            //{
+            //    Console.Write($" adj to {scene.AdjPot:F2} ");
+            //}
+            foreach (var p in scene.Players)
+            {
 
+
+                var allin = p.IsAllIn ? "@" : "";
+                Console.Write($"{allin}[{p.SeatNum}]{p.Chips:F2}   ");
+
+
+            }
+
+            if (scene.ActAmt != null && scene.ActAmt != 0)
+            {
+                //                Console.Write($" {scene.text}");
+                Console.Write($" {scene.PlayerId}  {scene.ActName} {scene.ActAmt}");
+
+            }
+            //    Console.Write($" {scene.PlayerId}  {scene.ActName} {scene.ActAmt}");
+            Console.WriteLine();
+        }
+    }
     public void DevOutputaAllIn()
     {
         foreach (var scene in Scenes.OrderBy(a => a.Seq))
