@@ -179,6 +179,7 @@ public class OneHandExt
     //    // Return from the array above
     //    return PositionOrder6Max[offset];
     //}
+    public string Ver { get { return "ver: 1.25.0 "; } }
     public string RawText { get; set; }
     public int dealerSeatIndex { get; set; }
     public int heroSeatIndex { get; set; }
@@ -345,12 +346,11 @@ public class OneHandExt
             if (scene.ActName != null && scene.ActName.ToUpper() == "RAISE")
             {
                 string checking = scene.PlayerId;
-                Console.WriteLine($"\nPatch___RAISE_ALLIN 找到 RAISE, PlayerId={checking} ");
+              //  Console.WriteLine($"\nPatch___RAISE_ALLIN 找到 RAISE, PlayerId={checking} ");
 
                 if (scene.IsAllIn)
                 {
-                    Console.WriteLine($"  確認是 ALL-IN   {checking} ");
-                    //  var previousActions = GetPreviousActionsInSameStage(checking, scene);
+                 //   Console.WriteLine($"  確認是 ALL-IN   {checking} ");
                     var hotPlayer = scene.Players.FirstOrDefault(a => a.PlayerId == scene.PlayerId);
                     if (hotPlayer != null)
                     {
@@ -365,47 +365,7 @@ public class OneHandExt
                             }
                         }
                     }
-                }
-
-
-
-
-
-                // Get previous actions of the same player in the same stage
-                //var previousActions = GetPreviousActionsInSameStage(checking, scene);
-
-                //if (previousActions != null)
-                //{
-                //    Console.WriteLine($"Previous actions of {checking} in stage {scene.Stage}:");
-                //    Console.WriteLine($"  Seq: {previousActions.Seq}, Action: {previousActions.ActName}, Amount: {previousActions.ActAmt}");
-                //    var targetPlayer = scene.Players.Where(a => a.PlayerId == checking).FirstOrDefault();
-                //    if (targetPlayer != null)
-                //    {
-                //        diff = (double)previousActions.ActAmt;
-                //        targetPlayer.AdjChips -= diff;
-                //        scene.AdjPot -= diff;
-                //    }
-                //}
-
-                //// Step 3: Propagate adjustments to all future scenes
-                //foreach (var scene2 in Actions.Where(a => a.Seq > scene.Seq))
-                //{
-                //    // var futureScene = Actions[j];
-
-                //    // Carry forward the pot adjustment
-                //    scene2.AdjPot -= diff;
-
-                //    // Carry forward each player's chip adjustment
-                //    foreach (var futurePlayer in scene2.Players.Where(a => a.PlayerId == checking))
-                //    {
-                //        var previousPlayerState = scene.Players.FirstOrDefault(p => p.PlayerId == futurePlayer.PlayerId);
-                //        if (previousPlayerState != null)
-                //        {
-                //            futurePlayer.AdjChips -= diff;
-                //        }
-                //    }
-                //}
-
+                }            
 
             }
         }
@@ -523,7 +483,7 @@ public class OneHandExt
             if (scene.ActName != null && scene.ActName.ToUpper() == "RETURN")
             {
                 string checking = scene.PlayerId;
-                Console.WriteLine($"\nRETURN case for {checking} ");
+              //  Console.WriteLine($"\nRETURN case for {checking} ");
 
                 // Get the uncalled bet amount
                 diff = (2) * (decimal)scene.ActAmt;
@@ -589,15 +549,15 @@ public class OneHandExt
             if (scene.ActName != null && scene.ActName.ToUpper() == "RAISE")
             {
                 string checking = scene.PlayerId;
-                Console.WriteLine($"\nRAISE case for {checking} ");
+               // Console.WriteLine($"\nRAISE case for {checking} ");
 
                 // Get previous actions of the same player in the same stage
                 var previousActions = GetPreviousActionsInSameStage(checking, scene);
 
                 if (previousActions != null)
                 {
-                    Console.WriteLine($"Previous actions of {checking} in stage {scene.Stage}:");
-                    Console.WriteLine($"  Seq: {previousActions.Seq}, Action: {previousActions.ActName}, Amount: {previousActions.ActAmt}");
+                    //Console.WriteLine($"Previous actions of {checking} in stage {scene.Stage}:");
+                    //Console.WriteLine($"  Seq: {previousActions.Seq}, Action: {previousActions.ActName}, Amount: {previousActions.ActAmt}");
                     var targetPlayer = scene.Players.Where(a => a.PlayerId == checking).FirstOrDefault();
                     if (targetPlayer != null)
                     {
@@ -701,7 +661,7 @@ public class OneHandExt
                 TableFortune = ExtractAmount(line, "Fortune $");
                 TableTax = ExtractAmount(line, "Tax $");
 
-                Console.WriteLine($"Pot: {TablePot}, Rake: {TableRake}, Jackpot: {TableJackpot}, Bingo: {TableBingo}, Fortune: {TableFortune}, Tax: {TableTax}");
+                //Console.WriteLine($"Pot: {TablePot}, Rake: {TableRake}, Jackpot: {TableJackpot}, Bingo: {TableBingo}, Fortune: {TableFortune}, Tax: {TableTax}");
             }
         }
     }
@@ -1172,14 +1132,12 @@ public class OneHandExt
             *** THIRD RIVER *** [5d 4h 3h 8c] [9s]
          */
         var list = RawHandRecords.Where(a => a.is_action_record).Where(a => a.text.StartsWith("***")).ToList();
-        //      string accumulatedCards = "";  // ✅ Store all previous community cards
-        Console.WriteLine($"*** InitCommunityCards ***");
         foreach (var raw in list)
         {
             (var AllInCnt, var allCards) = ParseCommunityCardsExt(raw.text);
             if (!string.IsNullOrEmpty(allCards))
             {
-                Console.WriteLine($"檢查全部的公共牌 {allCards} 及跑馬次 {AllInCnt}");
+              //  Console.WriteLine($"檢查全部的公共牌 {allCards} 及跑馬次 {AllInCnt}");
                 var p = new Scene();
                 p.AllInCnt = AllInCnt;
                 p.Stage = raw.section;
@@ -1787,7 +1745,6 @@ public class OneHandExt
     /// 
     public void SettingAmoutAndPot() //DOING
     {
-        Console.WriteLine($"SettingAmoutAndPot *************");
         // 先將頂層 Players 的 初始籌碼, 放到各 Scene 的 Players ,  籌 HGNI
         foreach (var scene in Scenes.Where(a => a.Seq > 0))
         {
@@ -1875,8 +1832,7 @@ public class OneHandExt
     }
     public void SettingAllIn()
     {
-        Console.WriteLine($"SettingAllIn *************");
-
+        
         foreach (var scene in Scenes.Where(a => a.Seq > 0))
         {
             if (scene.ActName == "ALL-IN")
