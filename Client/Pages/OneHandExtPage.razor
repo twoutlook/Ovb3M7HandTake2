@@ -1,9 +1,12 @@
 ﻿@page "/"
 @page "/one-hand-ext"
 @layout CleanLayout
-@using Ovb3HandPwa.Client.Data
-@using Ovb3HandPwa.Client.Models 
+@* @using Ovb3HandPwa.Client.Data
+@using Ovb3HandPwa.Client.Models  *@
 @using Poker2033.Hand
+@using Poker2033.Hand.Data
+@using Poker2033.Hand.Canvas
+
 @using System.Text.RegularExpressions
 @using AvnCanvasHelper
 @using Blazor.Extensions
@@ -13,6 +16,7 @@
 @using System.Drawing
 @using Radzen  <!-- for NotificationService, etc. -->
 @using System.Text
+
 
 <PageTitle>手牌回播（16個範例通過）</PageTitle>
 <div style="background-color: #333333; min-height: 100vh; padding: 10px;">
@@ -45,7 +49,7 @@
             Click="GoToLastStepAsync"
             Disabled="@oneHand.NO_MORE_NEXT"
             Style="width: 40px;" />
-            <span style="color:white;font-size:50%; font-family:monospace">scene @oneHand.SceneId / @oneHand.MAX_STEP <br />  ver 1.22.0</span>
+            <span style="color:white;font-size:50%; font-family:monospace">scene @oneHand.SceneId / @oneHand.MAX_STEP <br />  ver 1.23.0</span>
         }
         else
         {
@@ -399,7 +403,7 @@
         await Ctx.FillTextAsync(posName, seatX - 10, seatY + 5);
 
         // Draw chips
-        double chip = player.Chips;
+        decimal chip = player.Chips;
         string chipText = $"{chip:0.00}";
         // TextMetrics chipTextMetrics = await Ctx.MeasureTextAsync(chipText);
         // double chipTextWidth = chipTextMetrics.Width;
@@ -418,9 +422,9 @@
 
         // Draw action text
         string actionText = player.ActionDetail ?? "";
-        
-    
-      //  if ( player.IsAllIn) actionText = $"ALL-IN({actionText})";
+
+
+        //  if ( player.IsAllIn) actionText = $"ALL-IN({actionText})";
         // TextMetrics actionTextMetrics = await Ctx.MeasureTextAsync(actionText);
         // double actionTextWidth = actionTextMetrics.Width;
         double actionX = seatX - canvas.CardWidth ;
@@ -483,8 +487,8 @@
         await Ctx.SetFillStyleAsync("#FFFFFF"); // White text for readability
 
         // Draw each statistic
-    //    await Ctx.FillTextAsync($"Pot: {oneHand.TablePot:0.00}", startX, startY);
-        
+        //    await Ctx.FillTextAsync($"Pot: {oneHand.TablePot:0.00}", startX, startY);
+
         await Ctx.FillTextAsync($"Rake: {oneHand.TableRake:0.00}", startX, startY+20);
         await Ctx.FillTextAsync($"Jackpot: {oneHand.TableJackpot:0.00}", startX, startY + 40);
         await Ctx.FillTextAsync($"Bingo: {oneHand.TableBingo:0.00}", startX, startY + 60);
@@ -508,8 +512,9 @@
         bool hasFortune = oneHand.TableFortune > 0;
         bool hasTax = oneHand.TableTax > 0;
 
-        double total = oneHand.TableRake + oneHand.TableJackpot + oneHand.TableBingo + oneHand.TableFortune + oneHand.TableTax;
-        bool isPotValid = Math.Abs(oneHand.Pot - total) < 0.01; // 容許小數誤差
+        decimal total = oneHand.TableRake + oneHand.TableJackpot + oneHand.TableBingo + oneHand.TableFortune + oneHand.TableTax;
+        //bool isPotValid = Math.Abs(oneHand.Pot - total) < 0.01; // 容許小數誤差
+        (bool isPotValid, decimal pot, total) = oneHand.TestFinalPot();
 
         if (hasRake)
         {

@@ -1,6 +1,6 @@
 ﻿
 
-namespace Ovb3HandPwa.Client.Models;
+namespace Poker2033.Hand.Canvas;
 public class CanvasMobileHeroSettings
 {
     private const double BaseSeatRadiusX6 = 110;  // Default width for 6-max

@@ -252,17 +252,17 @@ public class OneHandExt
         DetermineDealer(); //確認 BTN 所在座次 0 to 5
         DetermineSeating();//在這裡建立 Player 實例, 同時確認 HERO 座次
 
-        Console.WriteLine($"{MAX_SEAT} 人桌");
-        Console.WriteLine($"{dealerSeatIndex} BTN 的座次(0 base)");
-        Console.WriteLine($"{heroSeatIndex} HERO 的座次(0 base)");
+        //Console.WriteLine($"{MAX_SEAT} 人桌");
+        //Console.WriteLine($"{dealerSeatIndex} BTN 的座次(0 base)");
+        //Console.WriteLine($"{heroSeatIndex} HERO 的座次(0 base)");
 
 
         //  DevOutput4();
 
-        foreach (var p in Players.OrderBy(a => a.SeatNum))
-        {
-            Console.WriteLine($"{p.SeatNum} {p.PlayerId}  {p.Position}");
-        }
+        //foreach (var p in Players.OrderBy(a => a.SeatNum))
+        //{
+        //    Console.WriteLine($"{p.SeatNum} {p.PlayerId}  {p.Position}");
+        //}
         // Players 改到show   在這裡先補入, 後續要往前移
 
         InitSections();
@@ -281,7 +281,7 @@ public class OneHandExt
 
         //最後才指定 seq=0 PlayerWithInitialChips;
         Scenes.Where(a => a.Seq == 0).FirstOrDefault().Players = PlayerWithInitialChips;
-        DevOutput3();
+        //DevOutput3();
 
 
         Patch___ALLIN();
@@ -309,7 +309,7 @@ public class OneHandExt
 
 
         //
-        DevOutput3();
+        //DevOutput3();
 
 
 
