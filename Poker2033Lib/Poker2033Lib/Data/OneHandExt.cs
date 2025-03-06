@@ -5,6 +5,20 @@ namespace Poker2033.Hand;
 public class OneHandExt
 {
     public OneHandExt() { }
+    public (bool result, double Pot, double rakeSum) TestFinalPot()
+    {
+        /*
+            await Ctx.FillTextAsync($"Rake: {oneHand.TableRake:0.00}", startX, startY + 20);
+            await Ctx.FillTextAsync($"Jackpot: {oneHand.TableJackpot:0.00}", startX, startY + 40);
+            await Ctx.FillTextAsync($"Bingo: {oneHand.TableBingo:0.00}", startX, startY + 60);
+            await Ctx.FillTextAsync($"Fortune: {oneHand.TableFortune:0.00}", startX, startY + 80);
+            await Ctx.FillTextAsync($"Tax: {oneHand.TableTax:0.00}", startX, startY + 100);
+        */
+        var lastScenes = Scenes.FirstOrDefault(a => a.Seq == MAX_STEP);
+        double pot = (double)(lastScenes?.Pot?? -999.99);
+        var rakeSum= (TableRake + TableJackpot + TableBingo + TableFortune + TableTax);      
+        return (pot == rakeSum, pot, rakeSum);
+    }
     public string GetScenePrompt()
     {
 
@@ -14,7 +28,7 @@ public class OneHandExt
             return "人員就座，準備開始。";
         }
 
-        var scene = Scenes.Where(a => a.Seq == SceneId).FirstOrDefault();
+        var scene = Scenes.FirstOrDefault(a => a.Seq == SceneId);
         if (scene != null)
         {
             str = $"Keynote：｜{scene.Stage}｜{scene.PlayerId}｜{scene.ActName}｜{scene.ActAmt}｜{scene.RawText}｜（原始記錄）{scene.text}｜";
@@ -33,7 +47,7 @@ public class OneHandExt
         var str = "";
 
 
-        var scene = Scenes.Where(a => a.Seq == SceneId).FirstOrDefault();
+        var scene = Scenes.FirstOrDefault(a => a.Seq == SceneId);
         if (scene != null)
         {
             str = scene.CommunityCards;
@@ -43,7 +57,7 @@ public class OneHandExt
 
         return str;
     }
-  
+
 
     public (int, string) GetCurrentCommunityCardsExt()
     {
@@ -76,7 +90,7 @@ public class OneHandExt
     }
     public Scene GetCurrentScene()
     {
-        return Scenes.Where(a => a.Seq == SceneId).FirstOrDefault();
+        return Scenes.FirstOrDefault(a => a.Seq == SceneId);
     }
 
     public Player GetCurrentScenePlayerBySeat(int seatNum)
@@ -365,12 +379,12 @@ public class OneHandExt
                             foreach (var scene2 in Scenes.Where(a => a.Seq >= scene.Seq))
                             {
                                 var scenePlayer = scene2.Players.FirstOrDefault(a => a.PlayerId == scene.PlayerId);
-                                if(scenePlayer!=null) scenePlayer.AdjChips += toFixAmt;
+                                if (scenePlayer != null) scenePlayer.AdjChips += toFixAmt;
                             }
                         }
                     }
                 }
-              
+
 
 
 
@@ -914,9 +928,9 @@ public class OneHandExt
 
         // Special case: Uncalled bet being returned
         string pattern0 = @"Uncalled bet \(\$(\d+(\.\d+)?)\) returned to (\S+)";
-      
+
         // 處理 千位分隔符（,）
-        Match match0 = Regex.Match(line.Replace(",",""), pattern0);
+        Match match0 = Regex.Match(line.Replace(",", ""), pattern0);
 
         if (match0.Success)
         {

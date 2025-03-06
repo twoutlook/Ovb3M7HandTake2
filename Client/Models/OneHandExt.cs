@@ -19,7 +19,7 @@ public class OneHandExt
             return "人員就座，準備開始。";
         }
 
-        var scene = Actions.Where(a => a.Seq == SceneId).FirstOrDefault();
+        var scene = Actions.FirstOrDefault(a => a.Seq == SceneId);
         if (scene != null)
         {
             str = $"Keynote：｜{scene.Stage}｜{scene.PlayerId}｜{scene.ActName}｜{scene.ActAmt}｜{scene.RawText}｜（原始記錄）{scene.text}｜";
@@ -38,7 +38,7 @@ public class OneHandExt
         var str = "";
 
 
-        var scene = Actions.Where(a => a.Seq == SceneId).FirstOrDefault();
+        var scene = Actions.FirstOrDefault(a => a.Seq == SceneId);
         if (scene != null)
         {
             str = scene.CommunityCards;
@@ -54,7 +54,7 @@ public class OneHandExt
     //    var str = "";
     //    var cnt = 0;
 
-    //    var scene = Actions.Where(a => a.Seq == SceneId).FirstOrDefault();
+    //    var scene = Actions.FirstOrDefault(a => a.Seq == SceneId);
     //    if (scene != null)
     //    {
     //        str = scene.CommunityCards;
@@ -106,7 +106,7 @@ public class OneHandExt
     }
     public Action GetCurrentScene()
     {
-        return Actions.Where(a => a.Seq == SceneId).FirstOrDefault();
+        return Actions.FirstOrDefault(a => a.Seq == SceneId);
     }
 
     public Player GetCurrentScenePlayerBySeat(int seatNum)
