@@ -1,0 +1,90 @@
+@page "/poker-hands"
+@attribute [Authorize]
+
+<PageTitle>PokerHands</PageTitle>
+<RadzenStack>
+    <RadzenRow AlignItems="AlignItems.Center">
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenText Text="PokerHands" TextStyle="TextStyle.H3" TagName="TagName.H1" style="margin: 0" />
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="6">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem">
+                <RadzenSplitButton Icon="get_app" Text="Export" Click="@ExportClick" Variant="Variant.Flat" Shade="Shade.Lighter">
+                    <RadzenSplitButtonItem Text="Excel" Value="xlsx" />
+                    <RadzenSplitButtonItem Text="CSV" Value="csv" />
+                </RadzenSplitButton>
+                <RadzenButton Icon="add_circle_outline" Text="Add" Click="@AddButtonClick" Variant="Variant.Flat" />
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenTextBox Placeholder="Search ..." style="display: block; width: 100%" @oninput="@Search" aria-label="Search by all string columns" />
+    <RadzenRow>
+      <RadzenColumn SizeMD=12>
+        <RadzenDataGrid @ref="grid0" ColumnWidth="200px"   AllowFiltering="true" FilterMode="FilterMode.Advanced" AllowPaging="true" AllowSorting="true" ShowPagingSummary="true" PageSizeOptions=@(new int[]{5, 10, 20, 30})
+            Data="@pokerHands" LoadData="@Grid0LoadData" Count="@count" TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" RowDoubleClick="@EditRow">
+            <Columns>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="Id" Title="Id">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="PokerHandNum" Title="Poker Hand Num">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="DataSections" Title="Data Sections">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="GameInfo" Title="Game Info">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="GameInfoJson" Title="Game Info Json">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="TableInfo" Title="Table Info">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="SeatCnt" Title="Seat Cnt">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="BtnSeat" Title="Btn Seat">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="HeroSeat" Title="Hero Seat">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="HeroPosition" Title="Hero Position">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="IsFlop" Title="Is Flop">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="IsTurn" Title="Is Turn">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="IsRiver" Title="Is River">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="IsShowDown" Title="Is Show Down">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="HoleCards" Title="Hole Cards">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="HoleCardsStd" Title="Hole Cards Std">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="HoleCardsStdSort" Title="Hole Cards Std Sort">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="HoleCombo" Title="Hole Combo">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="HoleComboSort" Title="Hole Combo Sort">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="GameCur" Title="Game Cur">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="HeroResult" Title="Hero Result">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="PokerHandText" Title="Poker Hand Text">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="LastScenePot" Title="Last Scene Pot">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="Rakes" Title="Rakes">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Property="Runtime" Title="Runtime">
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Ovb3M7Db.Server.Models.AppDb.PokerHand" Filterable="false" Sortable="false" Width="70px" TextAlign="TextAlign.Center">
+                    <Template Context="pokerHand">
+
+                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Medium"
+                            Shade="Shade.Lighter" Variant="Variant.Flat"
+                            Click=@(args => GridDeleteButtonClick(args, pokerHand)) @onclick:stopPropagation="true" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+
+        </RadzenDataGrid>
+
+    </RadzenColumn>
+  </RadzenRow>
+</RadzenStack>

@@ -7,6 +7,9 @@ class Program
 {
     static async Task Main()
     {
+        Ovb3M7Db.Server.Data.AppDbContext appDb = new();
+      //  var obj=appDb.
+
         OneHandExt one;
 
         for (int i = 1; i <= 17; i++)
