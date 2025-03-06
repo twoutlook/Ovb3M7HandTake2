@@ -20,6 +20,7 @@ public static class DevData
         if (gameID == 14) return pokerHand14;
         if (gameID == 15) return pokerHand15;
         if (gameID == 16) return pokerHand16;
+        if (gameID == 17) return pokerHand17;
 
         return pokerHand1;
 
@@ -36,6 +37,61 @@ public static class DevData
     "2s", "2h", "2d", "2c", "Xx"
 };
     public static string pokerHand { get { return pokerHand1; } }
+
+    public static string pokerHand17 = @"
+Poker Hand #HD1710476385: Hold'em No Limit ($2/$5) - 2024/04/01 15:13:18
+Table 'NLHPlatinum12' 6-max Seat #2 is the button
+Seat 1: f7e22200 ($413.77 in chips)
+Seat 2: c92d1a2c ($633.05 in chips)
+Seat 3: a67fbcc6 ($978.5 in chips)
+Seat 4: 438e367a ($404.21 in chips)
+Seat 5: Hero ($500 in chips)
+Seat 6: 456cdd20 ($538.15 in chips)
+a67fbcc6: posts small blind $2
+438e367a: posts big blind $5
+*** HOLE CARDS ***
+Dealt to f7e22200 
+Dealt to c92d1a2c 
+Dealt to a67fbcc6 
+Dealt to 438e367a 
+Dealt to Hero [Ad Qh]
+Dealt to 456cdd20 
+Hero: raises $5 to $10
+456cdd20: folds
+f7e22200: folds
+c92d1a2c: folds
+a67fbcc6: folds
+438e367a: calls $5
+*** FLOP *** [6s 2d 5d]
+438e367a: checks
+Hero: checks
+*** TURN *** [6s 2d 5d] [3d]
+438e367a: checks
+Hero: checks
+*** RIVER *** [6s 2d 5d 3d] [Jd]
+438e367a: bets $16.5
+Hero: raises $33.5 to $50
+438e367a: folds
+Uncalled bet ($33.5) returned to Hero
+*** SHOWDOWN ***
+Hero collected $52.25 from pot
+*** SUMMARY ***
+Total pot $55 | Rake $2.75 | Jackpot $0 | Bingo $0 | Fortune $0 | Tax $0
+Board [6s 2d 5d 3d Jd]
+Seat 1: f7e22200 folded before Flop (didn't bet)
+Seat 2: c92d1a2c (button) folded before Flop (didn't bet)
+Seat 3: a67fbcc6 (small blind) folded before Flop
+Seat 4: 438e367a (big blind) folded on the River
+Seat 5: Hero won ($52.25)
+Seat 6: 456cdd20 folded before Flop (didn't bet)
+
+
+
+";
+
+
+
+
     public static string pokerHand15 = @"
 Poker Hand #HD1613464220: Hold'em No Limit ($2/$5) - 2024/01/30 21:56:02
 Table 'NLHAPlatinum2' 9-max Seat #4 is the button
