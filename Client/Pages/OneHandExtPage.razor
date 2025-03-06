@@ -361,7 +361,8 @@
       //  double infoY = canvas.CenterY + 260; // 調整Y軸確保文字在右下角
 
         var sceneRaw = oneHand.GetCuurentSceneRawText();
-        await Ctx.SetFontAsync("bold 11px Consolas, monospace");
+        // await Ctx.SetFontAsync("bold 11px Consolas, monospace");
+        await Ctx.SetFontAsync("bold 11px Arial, sans-serif");  // Use a more compact font
         await Ctx.SetFillStyleAsync("#FFFFFF");
         await Ctx.FillTextAsync("手牌原始資料:", infoX, infoY);
         await Ctx.FillTextAsync(sceneRaw, infoX, infoY + 17);

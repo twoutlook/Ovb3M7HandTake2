@@ -175,7 +175,8 @@ public class OneHandExt
     // ver: 1.26.0 顯示 手牌原始資料
     // ver: 1.26.1 微調 手牌原始資料 位置及字體
     // ver: 1.26.2 微調 手牌原始資料 位置及字體
-    public string Ver { get { return "ver: 1.26.1 "; } }
+    // ver: 1.26.3 微調 手牌原始資料 位置及字體
+    public string Ver { get { return "ver: 1.26.3 "; } }
 
 
     public string RawText { get; set; }
