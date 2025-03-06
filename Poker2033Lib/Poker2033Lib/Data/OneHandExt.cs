@@ -43,32 +43,7 @@ public class OneHandExt
 
         return str;
     }
-    //public (int,string) GetCurrentCommunityCardsExt()
-    //{
-
-    //    var str = "";
-    //    var cnt = 0;
-
-    //    var scene = Actions.Where(a => a.Seq == SceneId).FirstOrDefault();
-    //    if (scene != null)
-    //    {
-    //        str = scene.CommunityCards;
-    //        cnt=scene.AllInCnt;
-    //        //str = $"［{scene.Seq}］{scene.Stage}|{scene.Player}|{scene.ActName}|{scene.ActAmt}|{scene.RawText}|";
-    //    }
-
-
-    //    return (cnt, str);
-    //}
-
-    public (int, string) xxxxxGetCurrentCommunityCardsExt()
-    {
-        var scene = Scenes.FirstOrDefault(a => a.Seq == SceneId);
-        if (scene == null) return (0, ""); // Return empty string if no scene found
-
-        return (scene.AllInCnt, scene.CommunityCards ?? ""); // Handle possible null values
-    }
-
+  
 
     public (int, string) GetCurrentCommunityCardsExt()
     {
