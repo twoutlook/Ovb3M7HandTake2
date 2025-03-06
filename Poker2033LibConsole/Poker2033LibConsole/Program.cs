@@ -13,7 +13,7 @@ class Program
             var hand=DevData.GetPokerHandByGameID(i);
             one.RawText = hand;
             await one.InitAsync();
-            (bool result, double pot, double rakes) = one.TestFinalPot();
+            (bool result, decimal pot, decimal rakes) = one.TestFinalPot();
             Console.WriteLine($"******************** {i} {result} {pot} {rakes}");
         }
         

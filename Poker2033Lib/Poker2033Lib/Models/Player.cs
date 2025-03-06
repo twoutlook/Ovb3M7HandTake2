@@ -28,9 +28,9 @@ public class Player
     public int SeatNum { get; set; } // 0-5, zero base
     public string Position { get; set; } //單個要決定 Position
     public string ActionDetail { get; set; }
-    public double Chips { get; set; } //單個可以是 initial chip, 
+    public decimal Chips { get; set; } //單個可以是 initial chip, 
 
-    public double AdjChips { get; set; } //單個可以是 initial chip, 
+    public decimal AdjChips { get; set; } //單個可以是 initial chip, 
 
     //  public double InitialChips { get; set; }       // The amount of chips the player has
     //public bool IsSmallBlind { get; set; }  // Indicates if the player is posting the small blind

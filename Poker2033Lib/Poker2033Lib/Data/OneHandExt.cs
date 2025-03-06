@@ -5,18 +5,13 @@ namespace Poker2033.Hand;
 public class OneHandExt
 {
     public OneHandExt() { }
-    public (bool result, double Pot, double rakeSum) TestFinalPot()
+  
+
+    public (bool result, decimal Pot, decimal rakeSum) TestFinalPot()
     {
-        /*
-            await Ctx.FillTextAsync($"Rake: {oneHand.TableRake:0.00}", startX, startY + 20);
-            await Ctx.FillTextAsync($"Jackpot: {oneHand.TableJackpot:0.00}", startX, startY + 40);
-            await Ctx.FillTextAsync($"Bingo: {oneHand.TableBingo:0.00}", startX, startY + 60);
-            await Ctx.FillTextAsync($"Fortune: {oneHand.TableFortune:0.00}", startX, startY + 80);
-            await Ctx.FillTextAsync($"Tax: {oneHand.TableTax:0.00}", startX, startY + 100);
-        */
-        var lastScenes = Scenes.FirstOrDefault(a => a.Seq == MAX_STEP);
-        double pot = (double)(lastScenes?.Pot?? -999.99);
-        var rakeSum= (TableRake + TableJackpot + TableBingo + TableFortune + TableTax);      
+        var lastScene = Scenes.FirstOrDefault(a => a.Seq == MAX_STEP);
+        decimal pot = lastScene?.Pot ?? -999.99m;
+        decimal rakeSum = TableRake + TableJackpot + TableBingo + TableFortune + TableTax;
         return (pot == rakeSum, pot, rakeSum);
     }
     public string GetScenePrompt()
@@ -238,30 +233,17 @@ public class OneHandExt
     public int ActionSeq = new();
     public List<Scene> Scenes = new();
     //Total pot $126.72 | Rake $6 | Jackpot $3 | Bingo $0 | Fortune $0 | Tax $0
-    public double TablePot; // 由 手牌記錄 解析獲得的
-    public double TableRake;
-    public double TableJackpot;
-    public double TableBingo;
-    public double TableFortune;
-    public double TableTax;
+    public decimal TablePot; // 由 手牌記錄 解析獲得的
+    public decimal TableRake;
+    public decimal TableJackpot;
+    public decimal TableBingo;
+    public decimal TableFortune;
+    public decimal TableTax;
 
 
 
 
-    public double Pot
-    {
-        get
-        {
-            //if (SceneId == 0 || NO_MORE_NEXT)
-            //{
-            //    return 0;
-            //}
-            //else
-            //{
-            return GetCurrentScene().Pot;
-            //}
-        }
-    }
+    public decimal Pot => GetCurrentScene()?.Pot ?? 0m;
 
     public async Task InitAsync()
     {
@@ -452,11 +434,11 @@ public class OneHandExt
             if (scene.ActName != null && scene.ActName.ToUpper() == "CALL")
             {
                 string checking = scene.PlayerId;
-                Console.WriteLine($"\n CALL 仿 Patch___RAISE_ALLIN 找到 RAISE, PlayerId={checking} ");
+              //  Console.WriteLine($"\n CALL 仿 Patch___RAISE_ALLIN 找到 RAISE, PlayerId={checking} ");
 
                 if (scene.IsAllIn)
                 {
-                    Console.WriteLine($"  確認是 ALL-IN   {checking} ");
+               //     Console.WriteLine($"  確認是 ALL-IN   {checking} ");
                     //  var previousActions = GetPreviousActionsInSameStage(checking, scene);
                     var hotPlayer = scene.Players.FirstOrDefault(a => a.PlayerId == scene.PlayerId);
                     if (hotPlayer != null)
@@ -475,43 +457,6 @@ public class OneHandExt
                 }
 
 
-
-
-
-                // Get previous actions of the same player in the same stage
-                //var previousActions = GetPreviousActionsInSameStage(checking, scene);
-
-                //if (previousActions != null)
-                //{
-                //    Console.WriteLine($"Previous actions of {checking} in stage {scene.Stage}:");
-                //    Console.WriteLine($"  Seq: {previousActions.Seq}, Action: {previousActions.ActName}, Amount: {previousActions.ActAmt}");
-                //    var targetPlayer = scene.Players.Where(a => a.PlayerId == checking).FirstOrDefault();
-                //    if (targetPlayer != null)
-                //    {
-                //        diff = (double)previousActions.ActAmt;
-                //        targetPlayer.AdjChips -= diff;
-                //        scene.AdjPot -= diff;
-                //    }
-                //}
-
-                //// Step 3: Propagate adjustments to all future scenes
-                //foreach (var scene2 in Actions.Where(a => a.Seq > scene.Seq))
-                //{
-                //    // var futureScene = Actions[j];
-
-                //    // Carry forward the pot adjustment
-                //    scene2.AdjPot -= diff;
-
-                //    // Carry forward each player's chip adjustment
-                //    foreach (var futurePlayer in scene2.Players.Where(a => a.PlayerId == checking))
-                //    {
-                //        var previousPlayerState = scene.Players.FirstOrDefault(p => p.PlayerId == futurePlayer.PlayerId);
-                //        if (previousPlayerState != null)
-                //        {
-                //            futurePlayer.AdjChips -= diff;
-                //        }
-                //    }
-                //}
 
 
             }
@@ -574,14 +519,14 @@ public class OneHandExt
         // Process RETURN actions
         foreach (var scene in Scenes)
         {
-            double diff = 0;
+            decimal diff = 0;
             if (scene.ActName != null && scene.ActName.ToUpper() == "RETURN")
             {
                 string checking = scene.PlayerId;
                 Console.WriteLine($"\nRETURN case for {checking} ");
 
                 // Get the uncalled bet amount
-                diff = (2) * (double)scene.ActAmt;
+                diff = (2) * (decimal)scene.ActAmt;
 
                 // Adjust the player's chips in the current scene
                 var targetPlayer = scene.Players.FirstOrDefault(a => a.PlayerId == checking);
@@ -640,7 +585,7 @@ public class OneHandExt
         // to actual Adj  DOING
         foreach (var scene in Scenes)
         {
-            double diff = 0;
+            decimal diff = 0;
             if (scene.ActName != null && scene.ActName.ToUpper() == "RAISE")
             {
                 string checking = scene.PlayerId;
@@ -656,7 +601,7 @@ public class OneHandExt
                     var targetPlayer = scene.Players.Where(a => a.PlayerId == checking).FirstOrDefault();
                     if (targetPlayer != null)
                     {
-                        diff = (double)previousActions.ActAmt;
+                        diff = (decimal)previousActions.ActAmt;
                         targetPlayer.AdjChips -= diff;
                         scene.AdjPot -= diff;
                     }
@@ -762,21 +707,21 @@ public class OneHandExt
     }
 
     // Helper method to extract amounts safely
-    private double ExtractAmount(string line, string keyword)
+    private decimal ExtractAmount(string line, string keyword)
     {
         int index = line.IndexOf(keyword);
-        if (index < 0) return 0.0; // If keyword is not found, return 0
+        if (index < 0) return 0m; // If keyword is not found, return 0
 
         index += keyword.Length;
         var remainingText = line.Substring(index).Trim();
         var parts = remainingText.Split(' ', '|'); // Split by space or pipe "|"
 
-        if (double.TryParse(parts[0], out double value))
+        if (decimal.TryParse(parts[0], out decimal value))
         {
             return value;
         }
 
-        return 0.0; // Return 0 if parsing fails
+        return 0m; // Return 0 if parsing fails
     }
 
 
@@ -870,7 +815,7 @@ public class OneHandExt
         // 
         ACTUAL_SEAT = Players.Count();
     }
-    public static double ParseAmount(string amountWithCurrency)
+    public static decimal ParseAmount(string amountWithCurrency)
     {
         // Regular expression to match a currency symbol followed by the number (e.g., "$118.52")
         //string pattern = @"([^\d]+)?([\d.]+)"; // Matches currency symbols (if any) and the numeric value
@@ -884,7 +829,7 @@ public class OneHandExt
             string amountStr = match.Groups[2].Value;
 
             // Convert the numeric value to a double
-            double amount = double.Parse(amountStr);
+            decimal amount = decimal.Parse(amountStr);
 
             return amount;
         }
@@ -936,7 +881,7 @@ public class OneHandExt
         {
             act.PlayerId = match0.Groups[3].Value;  // Extract player ID
             act.ActName = "RETURN";
-            act.ActAmt = double.Parse(match0.Groups[1].Value);  // Extract amount
+            act.ActAmt = decimal.Parse(match0.Groups[1].Value);  // Extract amount
                                                                 //    act.ActAmt = (-1) * act.ActAmt;
             return act;
         }
@@ -957,39 +902,13 @@ public class OneHandExt
             act.PlayerId = playerId;
 
 
-            // remove all-in
-            //if (afterColon.Contains("all-in"))
-            //{
-            //    double amt = ExtractNumeric(afterColon, "bets $");
-            //    if (amt == 0) amt = ExtractNumeric(afterColon, "raises $");
-            //    if (amt == 0) amt = ExtractNumeric(afterColon, "calls $");// id 310 補上
-
-            //    act.ActName = "ALL-IN";
-            //    act.ActAmt = amt;
-            //    act.IsAllIn = true; // Mark action as All-In
-            //    if (act.IsAllIn)
-            //    {
-            //        // 這時原不知道 seq
-            //        Console.Write($"ALL-IN {act.IsAllIn},SEQ={act.Seq}, PlayerId={act.PlayerId}");
-            //    }// Find the player and update their all-in status
-
-            //    // wrong timing
-            //    //var player = act.Players.Where(p => p.PlayerId == act.PlayerId).FirstOrDefault();
-            //    //if (player != null)
-            //    //{
-            //    //    player.IsAllIn = true;
-            //    //    Console.WriteLine($"ALL-IN Player Updated: {player.PlayerId} is now all-in");
-            //    //}
-
-            //}
-            //else
             if (afterColon.Contains("folds"))
             {
                 act.ActName = "FOLD";
             }
             else if (afterColon.Contains("calls"))
             {
-                double amt = ExtractNumeric(afterColon, "calls $");
+                decimal amt = ExtractNumeric(afterColon, "calls $");
                 act.ActName = "CALL";
                 act.ActAmt = amt;
             }
@@ -997,14 +916,14 @@ public class OneHandExt
             {
                 // Usually "raises $2 to $5" => final amount is "to $5"
                 //double amt = ExtractRaiseAmount(afterColon);
-                double amt = ExtractRaiseAmount(afterColon);// ON-HOLD CASE Poker Hand #HD1605201605
+                decimal amt = ExtractRaiseAmount(afterColon);// ON-HOLD CASE Poker Hand #HD1605201605
 
                 act.ActName = "RAISE";
                 act.ActAmt = amt;
             }
             else if (afterColon.Contains("bets"))
             {
-                double amt = ExtractNumeric(afterColon, "bets $");
+                decimal amt = ExtractNumeric(afterColon, "bets $");
                 act.ActName = "BET";
                 act.ActAmt = amt;
             }// 🔥 ADD THIS NEW CHECKS HANDLING HERE:
@@ -1206,7 +1125,7 @@ public class OneHandExt
             string amount = match.Groups[2].Value;   // Extract the amount
 
             act.PlayerId = player;
-            act.ActAmt = Double.Parse(amount);
+            act.ActAmt = decimal.Parse(amount);
             act.ActName = "WIN";
 
             //Console.WriteLine($"Player: {player}, Amount: {amount}");
@@ -1283,14 +1202,14 @@ public class OneHandExt
         }
         return string.Empty;  // Return an empty string if no match found
     }
-    private static double ExtractNumeric(string text, string prefix)
+    private static decimal ExtractNumeric(string text, string prefix)
     {
         int idx = text.IndexOf(prefix);
-        if (idx < 0) return 0.0;
+        if (idx < 0) return 0m;
         idx += prefix.Length;
         var remainder = text.Substring(idx).Trim();
         var parts = remainder.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        double.TryParse(parts[0], out double val);
+        decimal.TryParse(parts[0], out decimal val);
         return val;
     }
 
@@ -1370,7 +1289,7 @@ public class OneHandExt
             if (match.Success)
             {
                 string player = match.Groups[1].Value;  // Extract player ID
-                double amount = ParseAmount(match.Groups[2].Value); // Extract ante amount
+                decimal amount = ParseAmount(match.Groups[2].Value); // Extract ante amount
 
                 var anteAction = new Scene
                 {
@@ -1431,7 +1350,7 @@ public class OneHandExt
     /// </summary>
     /// <param name="text"></param>
     /// <returns></returns>
-    private static double ExtractRaiseAmount(string text)
+    private static decimal ExtractRaiseAmount(string text)
     {
         // Regular expression to match "raises $Y to $X"
         string pattern = @"raises \$(\d{1,3}(?:,\d{3})*(?:\.\d+)?) to \$(\d{1,3}(?:,\d{3})*(?:\.\d+)?)";
@@ -1444,13 +1363,13 @@ public class OneHandExt
             // 移除千分位逗號
             finalAmountStr = finalAmountStr.Replace(",", "");
 
-            if (double.TryParse(finalAmountStr, out double finalAmount))
+            if (decimal.TryParse(finalAmountStr, out decimal finalAmount))
             {
                 return finalAmount;
             }
         }
 
-        return 0.0; // 解析失敗時回傳 0
+        return 0m; // 解析失敗時回傳 0
     }
 
     /// <summary>
@@ -1904,7 +1823,7 @@ public class OneHandExt
 
                     if (scene.ActAmt > 0)
                     {
-                        double amt = (double)scene.ActAmt;
+                        decimal amt = (decimal)scene.ActAmt;
                         if (scene.ActName == "WIN")
                         {
                             amt = -amt;

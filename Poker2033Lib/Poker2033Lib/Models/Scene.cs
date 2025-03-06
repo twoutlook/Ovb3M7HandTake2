@@ -10,8 +10,8 @@ public class Scene
     ///SpotTo = "0,1" 代表 spotlight 指向 seatNum = 0 和 seatNum = 1
     /// </summary>
     public string SpotTo { get; set; } // 最原始的記錄
-    public double Pot { get; set; } = 0;
-    public double AdjPot { get; set; } = 0;
+    public decimal Pot { get; set; } = 0;
+    public decimal AdjPot { get; set; } = 0;
 
     public bool StreetPoint { get; set; } = false;
     public string text; // 最原始的記錄
@@ -19,7 +19,7 @@ public class Scene
     public string Stage { get; set; }    // Unique identifier for the player (e.g., a8b25666)
     public string PlayerId { get; set; }
     public string ActName { get; set; }
-    public double? ActAmt { get; set; }       // The amount of chips the player has
+    public decimal? ActAmt { get; set; }       // The amount of chips the player has
                                    //public bool IsSmallBlind { get; set; }  // Indicates if the player is posting the small blind
     /// <summary>
     /// 跑馬時, 有 FIRST, SECOND, THIRD 分別記錄 123
