@@ -347,17 +347,26 @@
         string sceneInfo = $"scene {oneHand.SceneId} / {oneHand.MAX_STEP}";
         string versionInfo = oneHand.Ver;// "ver 1.23.0";
 
-      
+
         double infoX = canvas.CenterX + 90; // 調整X軸確保文字在右下角
-        double infoY = canvas.CenterY + 260; // 調整Y軸確保文字在右下角
-
-
-
+        double infoY = canvas.CenterY + 280; // 調整Y軸確保文字在右下角
 
         await Ctx.SetFontAsync("bold 12px Consolas, monospace");
         await Ctx.SetFillStyleAsync("#FFFFFF");
         await Ctx.FillTextAsync(sceneInfo, infoX, infoY);
-        await Ctx.FillTextAsync(versionInfo, infoX, infoY + 16);
+        await Ctx.FillTextAsync(versionInfo, infoX, infoY - 16);
+
+
+         infoX = 10; // 調整X軸確保文字在右下角
+      //  double infoY = canvas.CenterY + 260; // 調整Y軸確保文字在右下角
+
+        var sceneRaw = oneHand.GetCuurentSceneRawText();
+        await Ctx.SetFontAsync("bold 12px Consolas, monospace");
+        await Ctx.SetFillStyleAsync("#FFFFFF");
+        await Ctx.FillTextAsync("手牌原始資料:", infoX, infoY);
+        await Ctx.FillTextAsync(sceneRaw, infoX, infoY + 16);
+
+
     }
 
 

@@ -171,15 +171,11 @@ public class OneHandExt
         return positionOrder[offset];
     }
 
-    //private string GetPositionName(int seatIndex, int buttonSeatIndex)
-    //{
-    //    // Normalize the offset to be within [0..5]
-    //    int offset = (seatIndex + 6 - buttonSeatIndex) % 6;
 
-    //    // Return from the array above
-    //    return PositionOrder6Max[offset];
-    //}
-    public string Ver { get { return "ver: 1.25.0 "; } }
+    // ver: 1.26.0 顯示 手牌原始資料
+    public string Ver { get { return "ver: 1.26.0 "; } }
+
+
     public string RawText { get; set; }
     public int dealerSeatIndex { get; set; }
     public int heroSeatIndex { get; set; }
@@ -241,7 +237,10 @@ public class OneHandExt
     public decimal TableFortune;
     public decimal TableTax;
 
-
+    public string GetCuurentSceneRawText()
+    {
+       return GetCurrentScene()?.text ?? string.Empty;
+    }
 
 
     public decimal Pot => GetCurrentScene()?.Pot ?? 0m;
