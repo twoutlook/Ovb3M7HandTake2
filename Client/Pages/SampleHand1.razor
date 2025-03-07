@@ -12,9 +12,19 @@
 
 <PageTitle>Sample Hand1</PageTitle>
 <h3>手牌範例 @Id</h3>
-<RadzenCard>
+@* <RadzenCard>
     <pre>@pokerHandData</pre>
-</RadzenCard>
+</RadzenCard> *@
+<RadzenTabs>
+    <Tabs>
+    <RadzenTabsItem Text="手牌記錄">
+        <pre>@pokerHandData</pre>
+    </RadzenTabsItem>
+    <RadzenTabsItem Text="問AI">
+        <!-- Empty tab for AI consultation -->
+        TODO...
+    </RadzenTabsItem></Tabs>
+</RadzenTabs>
 
 @code {
     [Parameter] public int Id { get; set; } // Route parameter
