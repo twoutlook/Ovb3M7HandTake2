@@ -9,9 +9,9 @@ class Program
 {
     static async Task Main()
     {
-        await Main17();
+      //  await Main17();
 
-        //await Main1000();
+        await Main1000();
         //not to close
         Console.WriteLine("Press any key to exit...");
         Console.ReadKey();
@@ -58,6 +58,7 @@ class Program
 
     static async Task Main1000()
     {
+        var badCnt = 0;
         var AppDbConnection = "Server=(localdb)\\mssqllocaldb;Connection Timeout=30;Command Timeout=30;Persist Security Info=False;TrustServerCertificate=True;Integrated Security=True;Initial Catalog=PokerHandDbTake2";
 
 
@@ -95,8 +96,8 @@ class Program
                 one.RawText = hand;
                 await one.InitAsync();
                 (bool result, decimal pot, decimal rakes) = one.TestFinalPot();
-
-                string statusMessage = result ? "POT餘額正確!" : "POT餘額錯誤!";
+                if(!result) badCnt++;
+                string statusMessage = result ? "POT餘額正確!" : "POT餘額錯誤! XXX";
                 //Console.WriteLine($"範例 {x.Id} => {statusMessage} ({result:0.00}, {rakes:0.00}) ");
                 //string statusMessage = result ? "POT餘額正確!" : "POT餘額錯誤!";
                 ////Console.WriteLine($"範例 {x.Id} => {statusMessage} ({result:0.00}, {rakes:0.00}) ");
@@ -114,7 +115,7 @@ class Program
             Console.WriteLine($"Processed {processedRecords}/{totalRecords} records...");
         }
 
-        Console.WriteLine("Processing completed.");
+        Console.WriteLine("Processing completed. badCnt is "+badCnt);
     }
 
     static async Task Main17()
@@ -125,7 +126,7 @@ class Program
 
         OneHandExt one;
 
-        for (int i = 1; i <= 18; i++)
+        for (int i = 19; i <= 19; i++)
         {
             one = new();
             var hand = DevData.GetPokerHandByGameID(i);
@@ -134,7 +135,7 @@ class Program
             (bool result, decimal pot, decimal rakes) = one.TestFinalPot();
 
             //string statusMessage = result ? "✅ POT餘額正確!" : "❌ POT餘額錯誤!";
-            string statusMessage = result ? "POT餘額正確!" : "POT餘額錯誤!";
+            string statusMessage = result ? "POT餘額正確!" : "POT餘額不正確   XXX";
             //Console.WriteLine($"範例 {i} => {statusMessage} ({result}, {pot}, {rakes}) ");
             Console.WriteLine($"範例 {i} => {statusMessage} ({result}, {pot.ToString("0.00")}, {rakes.ToString("0.00")}) ");
         }

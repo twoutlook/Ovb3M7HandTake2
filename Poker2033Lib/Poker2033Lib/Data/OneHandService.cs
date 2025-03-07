@@ -3,9 +3,9 @@ using System.Text.RegularExpressions;
 
 namespace Poker2033.Hand;
 //namespace Poker2033.Hand;
-public class OneHandExt
+public class OneHandService
 {
-    public OneHandExt() { }
+    public OneHandService() { }
 
 
     public (bool result, decimal Pot, decimal rakeSum) TestFinalPot()
@@ -180,6 +180,12 @@ public class OneHandExt
     // ver: 1.27.0 BUG FIXED on multiple RAISE
     // ver: 1.28.0 Cash Drop to Pot
     public string Ver { get { return "ver: 1.27.0 "; } }
+
+    public async Task<string> GetVersionAsync()
+    {
+        await Task.Delay(1); // Simulate an async operation
+        return "ver: 1.27.0";
+    }
 
 
     public string RawText { get; set; }

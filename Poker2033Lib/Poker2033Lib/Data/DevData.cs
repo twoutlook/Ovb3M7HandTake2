@@ -22,7 +22,9 @@ public static class DevData
         if (gameID == 16) return pokerHand16;
         if (gameID == 17) return pokerHand17;
         if (gameID == 18) return pokerHand18;
-
+        if (gameID == 19) return pokerHand19;
+        if (gameID == 20) return pokerHand20;
+        if (gameID == 21) return pokerHand21;
         return pokerHand1;
 
     }
@@ -37,7 +39,143 @@ public static class DevData
     "4s", "4h", "4d", "4c", "3s", "3h", "3d", "3c",
     "2s", "2h", "2d", "2c", "Xx"
 };
+    // ID 22443
+    public static string pokerHand21 = @"
+Poker Hand #HD1600413215: Hold'em No Limit ($5/$10) - 2024/01/22 19:14:11
+Table 'NLHDiamond10' 6-max Seat #4 is the button
+Seat 1: 69aa6ba0 ($1,000 in chips)
+Seat 2: 73bf0b93 ($1,051 in chips)
+Seat 3: 57d5d688 ($1,898.11 in chips)
+Seat 4: Hero ($1,432.36 in chips)
+Seat 5: 64ab5b21 ($1,159.25 in chips)
+Seat 6: d10c7498 ($1,015 in chips)
+64ab5b21: posts small blind $5
+d10c7498: posts big blind $10
+Hero: straddle $20
+*** HOLE CARDS ***
+Dealt to 69aa6ba0 
+Dealt to 73bf0b93 
+Dealt to 57d5d688 
+Dealt to Hero [Qc 5d]
+Dealt to 64ab5b21 
+Dealt to d10c7498 
+64ab5b21: folds
+d10c7498: folds
+69aa6ba0: folds
+73bf0b93: folds
+57d5d688: folds
+Uncalled bet ($10) returned to Hero
+*** SHOWDOWN ***
+Hero collected $25 from pot
+*** SUMMARY ***
+Total pot $25 | Rake $0 | Jackpot $0 | Bingo $0 | Fortune $0 | Tax $0
+Seat 1: 69aa6ba0 folded before Flop (didn't bet)
+Seat 2: 73bf0b93 folded before Flop (didn't bet)
+Seat 3: 57d5d688 folded before Flop (didn't bet)
+Seat 4: Hero (button) collected ($25)
+Seat 5: 64ab5b21 (small blind) folded before Flop
+Seat 6: d10c7498 (big blind) folded before Flop
+
+
+";
+
+
+
     public static string pokerHand { get { return pokerHand1; } }
+    // ID 8275 原始手牌明顯有誤
+    public static string pokerHand20 = @"
+Poker Hand #RC2156421639: Hold'em No Limit ($1/$2) - 2024/01/13 13:21:05
+Table 'RushAndCash1066899' 6-max Seat #1 is the button
+Seat 1: a9c4748f ($212.46 in chips)
+Seat 2: 7a022d09 ($148.57 in chips)
+Seat 3: f2263778 ($200 in chips)
+Seat 4: c53b2fba ($181.95 in chips)
+Seat 5: 899a01d6 ($412.12 in chips)
+Seat 6: Hero ($240.85 in chips)
+7a022d09: posts small blind $1
+f2263778: posts big blind $1
+*** HOLE CARDS ***
+Dealt to a9c4748f 
+Dealt to 7a022d09 
+Dealt to f2263778 
+Dealt to c53b2fba 
+Dealt to 899a01d6 
+Dealt to Hero [6c Th]
+c53b2fba: folds
+899a01d6: folds
+Hero: folds
+a9c4748f: folds
+7a022d09: folds
+Uncalled bet ($1) returned to f2263778
+*** SHOWDOWN ***
+f2263778 collected $2 from pot
+*** SUMMARY ***
+Total pot $2 | Rake $0 | Jackpot $0 | Bingo $0 | Fortune $0 | Tax $0
+Seat 1: a9c4748f (button) folded before Flop (didn't bet)
+Seat 2: 7a022d09 (small blind) folded before Flop
+Seat 3: f2263778 (big blind) collected ($2)
+Seat 4: c53b2fba folded before Flop (didn't bet)
+Seat 5: 899a01d6 folded before Flop (didn't bet)
+Seat 6: Hero folded before Flop (didn't bet)
+
+";
+
+    // ID 150
+    public static string pokerHand19 = @"
+Poker Hand #RC2128760636: Hold'em No Limit ($1/$2) - 2024/01/06 15:18:48
+Table 'RushAndCash125896' 6-max Seat #1 is the button
+Seat 1: 2376f4bc ($267.34 in chips)
+Seat 2: 81311a33 ($290.37 in chips)
+Seat 3: 8bcd13ea ($212.7 in chips)
+Seat 4: ed7d0bdb ($246.22 in chips)
+Seat 5: e90e78c0 ($203 in chips)
+Seat 6: Hero ($200 in chips)
+Cash Drop to Pot : total $40 
+81311a33: posts small blind $1
+8bcd13ea: posts big blind $2
+*** HOLE CARDS ***
+Dealt to 2376f4bc 
+Dealt to 81311a33 
+Dealt to 8bcd13ea 
+Dealt to ed7d0bdb 
+Dealt to e90e78c0 
+Dealt to Hero [4d 8h]
+ed7d0bdb: calls $2
+e90e78c0: calls $2
+Hero: calls $2
+2376f4bc: raises $265.34 to $267.34 and is all-in
+81311a33: folds
+8bcd13ea: folds
+ed7d0bdb: calls $244.22 and is all-in
+e90e78c0: folds
+Hero: folds
+Uncalled bet ($21.12) returned to 2376f4bc
+2376f4bc: shows [Jd Ac]
+ed7d0bdb: shows [Th Td]
+*** FIRST FLOP *** [Qs 3c Kd]
+*** FIRST TURN *** [Qs 3c Kd] [5s]
+*** FIRST RIVER *** [Qs 3c Kd 5s] [7s]
+*** SECOND FLOP *** [3s 5d 6d]
+*** SECOND TURN *** [3s 5d 6d] [9c]
+*** SECOND RIVER *** [3s 5d 6d 9c] [6h]
+*** FIRST SHOWDOWN ***
+ed7d0bdb collected $265.22 from pot
+*** SECOND SHOWDOWN ***
+ed7d0bdb collected $265.22 from pot
+*** SUMMARY ***
+Total pot $539.44 | Rake $6 | Jackpot $3 | Bingo $0 | Fortune $0 | Tax $0
+Hand was run two times
+FIRST Board [Qs 3c Kd 5s 7s]
+SECOND Board [3s 5d 6d 9c 6h]
+Seat 1: 2376f4bc (button) showed [Jd Ac] and lost with Ace-High, and lost with Pair of Sixes
+Seat 2: 81311a33 (small blind) folded before Flop
+Seat 3: 8bcd13ea (big blind) folded before Flop
+Seat 4: ed7d0bdb showed [Th Td] and won ($265.22) with Pair of Tens, and won ($265.22) with Pair of Tens and Pair of Sixes
+Seat 5: e90e78c0 folded before Flop
+Seat 6: Hero folded before Flop
+
+";
+
     public static string pokerHand18 = @"
 Poker Hand #HD1588374734: Hold'em No Limit ($5/$10) - 2024/01/15 16:47:24
 Table 'NLHDiamond4' 6-max Seat #2 is the button

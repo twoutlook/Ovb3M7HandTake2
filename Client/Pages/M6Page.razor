@@ -1,0 +1,55 @@
+﻿@page "/m6"
+@page "/m6-draft"
+<PageTitle>Index</PageTitle>
+
+@using AvnCanvasHelper
+@using Blazor.Extensions
+@using Blazor.Extensions.Canvas
+@using Blazor.Extensions.Canvas.Canvas2D
+@using Blazor.Extensions.Canvas.Model
+@using Poker2033.Hand.Data
+@using System.Drawing
+@inject IJSRuntime JS
+
+<PageTitle>M6</PageTitle>
+
+<!-- Game Type Selection -->
+<div class="mb-3">
+    <label><b>Game Type:</b></label>
+    <RadzenRadioButtonList TValue="string" @bind-Value="selectedGameType" Data="gameTypes" />
+</div>
+
+<!-- Mind Coach Selection -->
+<div class="mb-3">
+    <label><b>Mind Coach:</b></label>
+    <RadzenRadioButtonList TValue="string" @bind-Value="selectedMindCoach" Data="mindCoachOptions" />
+</div>
+
+<!-- Coach Cards in a Single Row -->
+<div class="container">
+<div class="row">
+    <div class="col-4">
+        <RadzenCard>
+            <h3>教練AAA</h3>
+        </RadzenCard>
+    </div>
+    <div class="col-4">
+        <RadzenCard>
+            <h3>教練BBB</h3>
+        </RadzenCard>
+    </div>
+    <div class="col-4">
+        <RadzenCard>
+            <h3>教練CCC</h3>
+        </RadzenCard>
+    </div>
+</div>
+</div>
+
+@code {
+    private string selectedGameType = "CASH";
+    private List<string> gameTypes = new() { "CASH", "MTT" };
+
+    private string selectedMindCoach = "No";
+    private List<string> mindCoachOptions = new() { "Yes", "No" };
+}
