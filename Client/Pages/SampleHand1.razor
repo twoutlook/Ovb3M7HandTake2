@@ -1,4 +1,4 @@
-﻿@page "/hand1"
+﻿@page "/sample-hand/{Id:int}"
 <PageTitle>Index</PageTitle>
 
 @using AvnCanvasHelper
@@ -11,7 +11,18 @@
 @inject IJSRuntime JS
 
 <PageTitle>Sample Hand1</PageTitle>
+<h3>手牌範例 @Id</h3>
 <RadzenCard>
-    <pre>@DevData.pokerHand</pre>
+    <pre>@pokerHandData</pre>
 </RadzenCard>
 
+@code {
+    [Parameter] public int Id { get; set; } // Route parameter
+    private string pokerHandData = "Loading...";
+
+    protected override void OnInitialized()
+    {
+        // Fetch the poker hand data based on Id
+        pokerHandData = DevData.GetPokerHandByGameID(Id);
+    }
+}

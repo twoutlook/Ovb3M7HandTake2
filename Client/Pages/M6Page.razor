@@ -25,31 +25,118 @@
     <RadzenRadioButtonList TValue="string" @bind-Value="selectedMindCoach" Data="mindCoachOptions" />
 </div>
 
-<!-- Coach Cards in a Single Row -->
-<div class="container">
-<div class="row">
-    <div class="col-4">
-        <RadzenCard>
-            <h3>教練AAA</h3>
-        </RadzenCard>
-    </div>
-    <div class="col-4">
-        <RadzenCard>
-            <h3>教練BBB</h3>
-        </RadzenCard>
-    </div>
-    <div class="col-4">
-        <RadzenCard>
-            <h3>教練CCC</h3>
-        </RadzenCard>
-    </div>
-</div>
+<!-- Buy-in Level -->
+<div class="mb-3">
+    <label><b>買入級別(USD):</b> @sliderValue</label><br />
+    <RadzenSlider Min="0" Max="5000" Step="100" Style="width: 300px;" @bind-Value="sliderValue" />
 </div>
 
+@* <hr />
+<h3>顯示上述變量值</h3>
+<hr />
+
+<!-- Display Variables in a Table -->
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>REC</th>
+            <th>變量名稱</th>
+            <th>當前值</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td><b>Game Type</b></td>
+            <td>@selectedGameType</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td><b>Mind Coach</b></td>
+            <td>@selectedMindCoach</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td><b>買入級別 (USD)</b></td>
+            <td>@sliderValue</td>
+        </tr>
+    </tbody>
+</table>
+
+<p><b>TODO: 按照上述動態顯示合乎條件的教練卡片</b></p> *@
+
+<!-- Display Filtered Coaches -->
+
+<div class="container">
+    <div class="row g-3">
+        @foreach (var coach in coaches.Where(c =>
+          (c.GameType == "BOTH" || c.GameType == selectedGameType) &&
+          (c.MindCoach == "BOTH" || c.MindCoach == selectedMindCoach) &&
+          (sliderValue >= c.BuyInMin && sliderValue <= c.BuyInMax)))
+        {
+                <div class="col-md-4 col-sm-6">
+                    <RadzenCard Style="cursor: pointer;" @onclick="() => ShowNotification(coach.Name)">
+                        <h4>@coach.Name</h4>
+                        <p><b>Game Type:</b> @coach.GameType</p>
+                        <p><b>Mind Coach:</b> @coach.MindCoach</p>
+                        <p><b>Buy-in:</b> @coach.BuyInMin - @coach.BuyInMax USD</p>
+                    </RadzenCard>
+                </div>
+        }
+    </div>
+</div>
 @code {
     private string selectedGameType = "CASH";
     private List<string> gameTypes = new() { "CASH", "MTT" };
 
     private string selectedMindCoach = "No";
     private List<string> mindCoachOptions = new() { "Yes", "No" };
+
+    private int sliderValue = 2500; // Default value
+    private void ShowNotification(string coachName)
+    {
+
+        NotificationService.Notify(
+            new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Info,
+                    Summary = "即將進入 1 對 1",
+                    Detail = $"TODO 接下來進入登入和教練 {coachName} 的一對一交流",
+                    Duration = 4000
+                }
+        );
+    }
+    private List<VirtualCoach> coaches = new()
+    {
+        new VirtualCoach("教練A", "CASH", "Yes", 500, 2000),
+        new VirtualCoach("教練B", "MTT", "No", 1000, 3000),
+        new VirtualCoach("教練C", "BOTH", "Yes", 200, 1500),
+        new VirtualCoach("教練D", "CASH", "No", 3000, 5000),
+        new VirtualCoach("教練E", "MTT", "Yes", 500, 2500),
+        new VirtualCoach("教練F", "BOTH", "No", 1000, 4000),
+        new VirtualCoach("教練G", "CASH", "Yes", 2000, 5000),
+        new VirtualCoach("教練H", "MTT", "No", 0, 500),
+        new VirtualCoach("教練I", "BOTH", "Yes", 500, 3500),
+        new VirtualCoach("教練J", "CASH", "No", 100, 4500),
+        new VirtualCoach("教練K", "MTT", "Yes", 1500, 5000),
+        new VirtualCoach("教練L", "BOTH", "No", 2000, 3000),
+    };
+
+    private class VirtualCoach
+    {
+        public string Name { get; set; }
+        public string GameType { get; set; }
+        public string MindCoach { get; set; }
+        public int BuyInMin { get; set; }
+        public int BuyInMax { get; set; }
+
+        public VirtualCoach(string name, string gameType, string mindCoach, int buyInMin, int buyInMax)
+        {
+            Name = name;
+            GameType = gameType;
+            MindCoach = mindCoach;
+            BuyInMin = buyInMin;
+            BuyInMax = buyInMax;
+        }
+    }
 }
