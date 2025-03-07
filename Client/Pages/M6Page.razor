@@ -34,27 +34,38 @@
 
         <div class="container">
             <div class="row g-3">
-                @foreach (var coach in coaches.Where(c =>
-                 (c.GameType == "BOTH" || c.GameType == selectedGameType) &&
-                 (c.MindCoach == "BOTH" || c.MindCoach == selectedMindCoach) &&
-                 (sliderValue >= c.BuyInMin && sliderValue <= c.BuyInMax)))
-                {
-                        <div class="col-md-4 col-sm-6">
-                            <RadzenCard Style="cursor: pointer;" @onclick="() => ShowNotification(coach.Name)">
-                                <h4>@coach.Name</h4>
-                                <p><b>Game Type:</b> @coach.GameType</p>
-                                <p><b>Mind Coach:</b> @coach.MindCoach</p>
-                                <p><b>Buy-in:</b> @coach.BuyInMin - @coach.BuyInMax USD</p>
-                            </RadzenCard>
-                        </div>
-                }
+                    @foreach (var coach in coaches.Where(c =>
+                    (c.GameType == "BOTH" || c.GameType == selectedGameType) &&
+                    (c.MindCoach == "BOTH" || c.MindCoach == selectedMindCoach) &&
+                    (sliderValue >= c.BuyInMin && sliderValue <= c.BuyInMax)))
+                    {
+                                <div class="col-md-4 col-sm-6">
+                                    <RadzenCard Style="cursor: pointer;" @onclick="() => ShowNotification(coach.Name)">
+                                        <h4>@coach.Name</h4>
+                                        <p><b>Game Type:</b> @coach.GameType</p>
+                                        <p><b>Mind Coach:</b> @coach.MindCoach</p>
+                                        <p><b>Buy-in:</b> @coach.BuyInMin - @coach.BuyInMax USD</p>
+                                    </RadzenCard>
+                                </div>
+                    }
             </div>
         </div>
     </RadzenTabsItem>
 
     <RadzenTabsItem Text="幕後">
         <!-- Empty tab for backend-related content -->
-        <p>這裡可以放幕後的設定、開發資訊或數據分析。</p>
+     <p>虛擬的教練團隊基礎資料</p>
+  
+   <RadzenDataGrid Data="@coaches" TItem="VirtualCoach" AllowFiltering="true" AllowSorting="true" PageSize="5">
+    <Columns>
+        <RadzenDataGridColumn TItem="VirtualCoach" Property="Name" Title="教練名稱" />
+        <RadzenDataGridColumn TItem="VirtualCoach" Property="GameType" Title="遊戲類型" />
+        <RadzenDataGridColumn TItem="VirtualCoach" Property="MindCoach" Title="心態教練" />
+        <RadzenDataGridColumn TItem="VirtualCoach" Property="BuyInMin" Title="最低買入"  />
+        <RadzenDataGridColumn TItem="VirtualCoach" Property="BuyInMax" Title="最高買入"  />
+    </Columns>
+</RadzenDataGrid> 
+
     </RadzenTabsItem>
     </Tabs>
 </RadzenTabs>
