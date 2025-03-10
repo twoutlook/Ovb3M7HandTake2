@@ -1,5 +1,5 @@
 ﻿@page "/m6"
-@page "/m6-draft"
+@* @page "/m6-draft" *@
 <PageTitle>Index</PageTitle>
 
 @using AvnCanvasHelper
@@ -18,19 +18,20 @@
         <RadzenTabsItem Text="打樣">
             <!-- Existing Page Content -->
             <div class="mb-3">
-                <label><b>Game Type:</b></label>
+                <label><b>1. 你打的德州撲克類型?</b></label>
                 <RadzenRadioButtonList TValue="string" @bind-Value="selectedGameType" Data="gameTypes" />
             </div>
 
             <div class="mb-3">
-                <label><b>Mind Coach:</b></label>
+                <label><b>2. 是否需要 Mind Coach?</b></label>
                 <RadzenRadioButtonList TValue="string" @bind-Value="selectedMindCoach" Data="mindCoachOptions" />
             </div>
 
             <div class="mb-3">
-                <label><b>買入級別(USD):</b> @sliderValue</label><br />
+                <label><b>3. 你目前的買入級別(USD)?</b> @sliderValue</label><br />
                 <RadzenSlider Min="0" Max="5000" Step="100" Style="width: 300px;" @bind-Value="sliderValue" />
             </div>
+            <p><b>以下是推荐的教練:</b></p>
             <div class="container">
                 <div class="row g-3">
                     @foreach (var coach in coaches.Where(c =>
@@ -39,22 +40,32 @@
                     (sliderValue >= c.BuyInMin && sliderValue <= c.BuyInMax)))
                     {
                         <div class="col-md-4 col-sm-6" @key="@coach.Name">
-                            <RadzenCard Style="cursor: pointer;">
+                            @* <RadzenCard Style="@($"cursor: pointer; width: {(coach.ShowMore ? "800px" : "250px")}; transition: width 0.3s ease-in-out; z-index: {(coach.ShowMore ? "10" : "1")};")"> *@
+                                <RadzenCard Style="@($"cursor: pointer; width: {(coach.ShowMore ? "800px" : "250px")}; transition: width 0.3s ease-in-out; z-index: {(coach.ShowMore ? "10" : "1")}; position: {(coach.ShowMore ? "absolute" : "relative")}; background: white; box-shadow: {(coach.ShowMore ? "0px 4px 10px rgba(0,0,0,0.2)" : "0px 2px 5px rgba(0,0,0,0.1)")};")">
+
+                            @* <RadzenCard Style="cursor: pointer;"> *@
                                 <h4>@coach.Name</h4>
                                 <p><b>Game Type:</b> @coach.GameType</p>
                                 <p><b>Mind Coach:</b> @coach.MindCoach</p>
                                 <p><b>Buy-in:</b> @coach.BuyInMin - @coach.BuyInMax USD</p>
 
+                             
+
                                 @if (!string.IsNullOrEmpty(coach.Details))
                                 {
                                     @if (coach.ShowMore)
                                     {
-                                        <p>@(coach.Details)</p>
-                                        <RadzenButton ButtonStyle="ButtonStyle.Light" Text="...less" @onclick="() => ToggleDetails(coach)" />
+                               
+                                        <p>@((MarkupString)coach.Details)</p>
+                                        <RadzenButton ButtonStyle="ButtonStyle.Light"
+                                                      Text="...less"
+                                                      Click="@(() => ToggleDetails(coach))" />
                                     }
                                     else
                                     {
-                                        <RadzenButton ButtonStyle="ButtonStyle.Light" Text="...more" @onclick="() => ToggleDetails(coach)" />
+                                        <RadzenButton ButtonStyle="ButtonStyle.Light"
+                                                      Text="...more"
+                                                      Click="@(() => ToggleDetails(coach))" />
                                     }
                                 }
                             </RadzenCard>
@@ -96,10 +107,13 @@
     private string selectedMindCoach = "No";
     private List<string> mindCoachOptions = new() { "Yes", "No" };
 
+
     private void ToggleDetails(VirtualCoach coach)
     {
         coach.ShowMore = !coach.ShowMore;
-        StateHasChanged(); // Force UI to update
+        Console.WriteLine($"DEBUG: ToggleDetails called for {coach.Name}. ShowMore is now: {coach.ShowMore}");
+        StateHasChanged(); // This should force the UI to re-render
+
     }
 
     private int sliderValue = 2500; // Default value
@@ -120,17 +134,17 @@
     {
         // New Coach Entry
     new VirtualCoach("教練 Reach", "CASH", "Yes", 0, 2500,  // Basic Details
-        "撲克牌齡：4 年\n" +
-        "專業領域：現金桌（Cash Game）\n" +
-        "適合學員：低級別玩家希望提升勝率\n" +
-        "收費價格 :  一堂課約1500~2500/hr\n\n" +
-        "**關於我**\n" +
+        "<hr>撲克牌齡：4 年<br/>" +
+        "專業領域：現金桌（Cash Game）<br/>" +
+        "適合學員：低級別玩家希望提升勝率<br/>" +
+        "收費價格 :  一堂課約1500~2500/hr<br/>" +
+        "**關於我**<br/>" +
         "我是兼職牌手，在兼顧本業的同時，仍能透過撲克穩定盈利。我深知業餘玩家在學習與實戰中可能遇到的挑戰，因此，我的教學不僅專注於技術提升，也注重思維優化與實戰應用。\n\n" +
         "我擅長分析學員的盲點，幫助你找到問題的根源，並以清晰易懂的方式解釋策略，讓你能夠真正理解並內化。我相信每位玩家都能透過正確的方法與心態，在撲克之路上持續進步。\n\n" +
-        "**適合我的學員**\n" +
-        "✅ 新手玩家：剛接觸撲克，不知道從何學起？我能幫你建立扎實的基礎，避免走彎路。\n" +
-        "✅ 瓶頸玩家：長期打牌卻無法突破？我會協助你分析數據與手牌，找出影響勝率的關鍵問題。\n" +
-        "✅ 心態調適：輸贏影響情緒？缺乏自信？我提供心理層面的指導，幫助你以穩定的心態應對遊戲挑戰。\n\n" +
+        "**適合我的學員**<br/>" +
+        "✅ 新手玩家：剛接觸撲克，不知道從何學起？我能幫你建立扎實的基礎，避免走彎路。<br/>" +
+        "✅ 瓶頸玩家：長期打牌卻無法突破？我會協助你分析數據與手牌，找出影響勝率的關鍵問題。<br/>" +
+        "✅ 心態調適：輸贏影響情緒？缺乏自信？我提供心理層面的指導，幫助你以穩定的心態應對遊戲挑戰。<br/>" +
         "如果你希望提升撲克勝率、改善決策能力，甚至尋求心態上的調整，我都能幫助你更進一步！"),
 
         new VirtualCoach("教練A", "CASH", "Yes", 500, 2000),
