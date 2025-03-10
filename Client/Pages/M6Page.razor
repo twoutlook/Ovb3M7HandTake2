@@ -15,58 +15,76 @@
 
 <RadzenTabs>
     <Tabs>
-    <RadzenTabsItem Text="打樣">
-        <!-- Existing Page Content -->
-        <div class="mb-3">
-            <label><b>Game Type:</b></label>
-            <RadzenRadioButtonList TValue="string" @bind-Value="selectedGameType" Data="gameTypes" />
-        </div>
+        <RadzenTabsItem Text="打樣">
+            <!-- Existing Page Content -->
+            <div class="mb-3">
+                <label><b>Game Type:</b></label>
+                <RadzenRadioButtonList TValue="string" @bind-Value="selectedGameType" Data="gameTypes" />
+            </div>
 
-        <div class="mb-3">
-            <label><b>Mind Coach:</b></label>
-            <RadzenRadioButtonList TValue="string" @bind-Value="selectedMindCoach" Data="mindCoachOptions" />
-        </div>
+            <div class="mb-3">
+                <label><b>Mind Coach:</b></label>
+                <RadzenRadioButtonList TValue="string" @bind-Value="selectedMindCoach" Data="mindCoachOptions" />
+            </div>
 
-        <div class="mb-3">
-            <label><b>買入級別(USD):</b> @sliderValue</label><br />
-            <RadzenSlider Min="0" Max="5000" Step="100" Style="width: 300px;" @bind-Value="sliderValue" />
-        </div>
-
-        <div class="container">
-            <div class="row g-3">
+            <div class="mb-3">
+                <label><b>買入級別(USD):</b> @sliderValue</label><br />
+                <RadzenSlider Min="0" Max="5000" Step="100" Style="width: 300px;" @bind-Value="sliderValue" />
+            </div>
+            <div class="container">
+                <div class="row g-3">
                     @foreach (var coach in coaches.Where(c =>
                     (c.GameType == "BOTH" || c.GameType == selectedGameType) &&
                     (c.MindCoach == "BOTH" || c.MindCoach == selectedMindCoach) &&
                     (sliderValue >= c.BuyInMin && sliderValue <= c.BuyInMax)))
                     {
-                                <div class="col-md-4 col-sm-6">
-                                    <RadzenCard Style="cursor: pointer;" @onclick="() => ShowNotification(coach.Name)">
-                                        <h4>@coach.Name</h4>
-                                        <p><b>Game Type:</b> @coach.GameType</p>
-                                        <p><b>Mind Coach:</b> @coach.MindCoach</p>
-                                        <p><b>Buy-in:</b> @coach.BuyInMin - @coach.BuyInMax USD</p>
-                                    </RadzenCard>
-                                </div>
+                        <div class="col-md-4 col-sm-6" @key="@coach.Name">
+                            <RadzenCard Style="cursor: pointer;">
+                                <h4>@coach.Name</h4>
+                                <p><b>Game Type:</b> @coach.GameType</p>
+                                <p><b>Mind Coach:</b> @coach.MindCoach</p>
+                                <p><b>Buy-in:</b> @coach.BuyInMin - @coach.BuyInMax USD</p>
+
+                                @if (!string.IsNullOrEmpty(coach.Details))
+                                {
+                                    @if (coach.ShowMore)
+                                    {
+                                        <p>@(coach.Details)</p>
+                                        <RadzenButton ButtonStyle="ButtonStyle.Light" Text="...less" @onclick="() => ToggleDetails(coach)" />
+                                    }
+                                    else
+                                    {
+                                        <RadzenButton ButtonStyle="ButtonStyle.Light" Text="...more" @onclick="() => ToggleDetails(coach)" />
+                                    }
+                                }
+                            </RadzenCard>
+                        </div>
                     }
+
+
+
+
+                </div>
             </div>
-        </div>
-    </RadzenTabsItem>
 
-    <RadzenTabsItem Text="幕後">
-        <!-- Empty tab for backend-related content -->
-     <p>虛擬的教練團隊基礎資料</p>
-  
-   <RadzenDataGrid Data="@coaches" TItem="VirtualCoach" AllowFiltering="true" AllowSorting="true" PageSize="5">
-    <Columns>
-        <RadzenDataGridColumn TItem="VirtualCoach" Property="Name" Title="教練名稱" />
-        <RadzenDataGridColumn TItem="VirtualCoach" Property="GameType" Title="遊戲類型" />
-        <RadzenDataGridColumn TItem="VirtualCoach" Property="MindCoach" Title="心態教練" />
-        <RadzenDataGridColumn TItem="VirtualCoach" Property="BuyInMin" Title="最低買入"  />
-        <RadzenDataGridColumn TItem="VirtualCoach" Property="BuyInMax" Title="最高買入"  />
-    </Columns>
-</RadzenDataGrid> 
 
-    </RadzenTabsItem>
+        </RadzenTabsItem>
+
+        <RadzenTabsItem Text="幕後">
+            <!-- Empty tab for backend-related content -->
+            <p>虛擬的教練團隊基礎資料</p>
+
+            <RadzenDataGrid Data="@coaches" TItem="VirtualCoach" AllowFiltering="true" AllowSorting="true" PageSize="5">
+                <Columns>
+                    <RadzenDataGridColumn TItem="VirtualCoach" Property="Name" Title="教練名稱" />
+                    <RadzenDataGridColumn TItem="VirtualCoach" Property="GameType" Title="遊戲類型" />
+                    <RadzenDataGridColumn TItem="VirtualCoach" Property="MindCoach" Title="心態教練" />
+                    <RadzenDataGridColumn TItem="VirtualCoach" Property="BuyInMin" Title="最低買入" />
+                    <RadzenDataGridColumn TItem="VirtualCoach" Property="BuyInMax" Title="最高買入" />
+                </Columns>
+            </RadzenDataGrid>
+
+        </RadzenTabsItem>
     </Tabs>
 </RadzenTabs>
 
@@ -77,6 +95,12 @@
 
     private string selectedMindCoach = "No";
     private List<string> mindCoachOptions = new() { "Yes", "No" };
+
+    private void ToggleDetails(VirtualCoach coach)
+    {
+        coach.ShowMore = !coach.ShowMore;
+        StateHasChanged(); // Force UI to update
+    }
 
     private int sliderValue = 2500; // Default value
     private void ShowNotification(string coachName)
@@ -94,6 +118,21 @@
     }
     private List<VirtualCoach> coaches = new()
     {
+        // New Coach Entry
+    new VirtualCoach("教練 Reach", "CASH", "Yes", 0, 2500,  // Basic Details
+        "撲克牌齡：4 年\n" +
+        "專業領域：現金桌（Cash Game）\n" +
+        "適合學員：低級別玩家希望提升勝率\n" +
+        "收費價格 :  一堂課約1500~2500/hr\n\n" +
+        "**關於我**\n" +
+        "我是兼職牌手，在兼顧本業的同時，仍能透過撲克穩定盈利。我深知業餘玩家在學習與實戰中可能遇到的挑戰，因此，我的教學不僅專注於技術提升，也注重思維優化與實戰應用。\n\n" +
+        "我擅長分析學員的盲點，幫助你找到問題的根源，並以清晰易懂的方式解釋策略，讓你能夠真正理解並內化。我相信每位玩家都能透過正確的方法與心態，在撲克之路上持續進步。\n\n" +
+        "**適合我的學員**\n" +
+        "✅ 新手玩家：剛接觸撲克，不知道從何學起？我能幫你建立扎實的基礎，避免走彎路。\n" +
+        "✅ 瓶頸玩家：長期打牌卻無法突破？我會協助你分析數據與手牌，找出影響勝率的關鍵問題。\n" +
+        "✅ 心態調適：輸贏影響情緒？缺乏自信？我提供心理層面的指導，幫助你以穩定的心態應對遊戲挑戰。\n\n" +
+        "如果你希望提升撲克勝率、改善決策能力，甚至尋求心態上的調整，我都能幫助你更進一步！"),
+
         new VirtualCoach("教練A", "CASH", "Yes", 500, 2000),
         new VirtualCoach("教練B", "MTT", "No", 1000, 3000),
         new VirtualCoach("教練C", "BOTH", "Yes", 200, 1500),
@@ -108,6 +147,7 @@
         new VirtualCoach("教練L", "BOTH", "No", 2000, 3000),
     };
 
+
     private class VirtualCoach
     {
         public string Name { get; set; }
@@ -115,14 +155,35 @@
         public string MindCoach { get; set; }
         public int BuyInMin { get; set; }
         public int BuyInMax { get; set; }
+        public string Details { get; set; } = "";  // New field for additional details
+        public bool ShowMore { get; set; } = false;  // Toggle for "...more"
 
-        public VirtualCoach(string name, string gameType, string mindCoach, int buyInMin, int buyInMax)
+        public VirtualCoach(string name, string gameType, string mindCoach, int buyInMin, int buyInMax, string details = "")
         {
             Name = name;
             GameType = gameType;
             MindCoach = mindCoach;
             BuyInMin = buyInMin;
             BuyInMax = buyInMax;
+            Details = details;
         }
     }
+
+    // private class XXXVirtualCoach
+    // {
+    //     public string Name { get; set; }
+    //     public string GameType { get; set; }
+    //     public string MindCoach { get; set; }
+    //     public int BuyInMin { get; set; }
+    //     public int BuyInMax { get; set; }
+
+    //     public XXVirtualCoach(string name, string gameType, string mindCoach, int buyInMin, int buyInMax)
+    //     {
+    //         Name = name;
+    //         GameType = gameType;
+    //         MindCoach = mindCoach;
+    //         BuyInMin = buyInMin;
+    //         BuyInMax = buyInMax;
+    //     }
+    // }
 }
